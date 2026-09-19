@@ -376,6 +376,7 @@
             editTabInput.value = activeList.name;
             deleteTabBtn.style.display = lists.length <= 1 ? 'none' : 'block';
             editTabModal.classList.remove('hidden');
+            deleteTabBtn.textContent = `Delete`;
             setTimeout(() => editTabInput.focus(), 100);
         }
         function closeEditTabModal() { editTabModal.classList.add('hidden'); }
