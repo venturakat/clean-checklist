@@ -51,8 +51,16 @@
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background-color: var(--hint-color); border-radius: 10px; }
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Smooth momentum scrolling for iOS */
+        .tab-scroll-container {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .tab-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
         
         .sortable-ghost { opacity: 0.4; }
     </style>
@@ -68,7 +76,7 @@
         </header>
 
         <!-- Tabs Area -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 scrollbar-hide" id="tab-bar">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 tab-scroll-container" id="tab-bar">
             <!-- Tabs injected via JS -->
         </div>
 
@@ -484,7 +492,6 @@
                     const rightSideDiv = document.createElement('div');
                     rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
 
-                    // Approximate Time (Red Text) if timed list and time exists
                     if (activeList.type === 'timed' && task.time > 0) {
                         const timeSpan = document.createElement('span');
                         timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold';
@@ -536,6 +543,8 @@
                 animation: 200,
                 draggable: 'button:not(:last-child)', 
                 filter: '.add-tab-btn',
+                delay: 150, // Added slight delay so horizontal swipe scrolling works cleanly without accidental drags
+                delayOnTouchOnly: true,
                 onStart: function (evt) {
                     evt.item.dataset.dragging = "true";
                 },
@@ -603,7 +612,6 @@
             updateInputAreaState();
         }
 
-        // New Tab Logic with Separate Custom Options
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
@@ -695,7 +703,6 @@
             updateInputAreaState();
         }
 
-        // Edit Tab Logic
         function openEditTabModal() {
             const activeList = getActiveList();
             editTabInput.value = activeList.name;
