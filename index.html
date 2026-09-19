@@ -396,7 +396,15 @@
         function openEditTabModal() {
             const activeList = getActiveList();
             editTabInput.value = activeList.name;
-            deleteTabBtn.style.display = lists.length <= 1 ? 'none' : 'block';
+            
+            // Update delete button text and visibility
+            if (lists.length <= 1) {
+                deleteTabBtn.style.display = 'none';
+            } else {
+                deleteTabBtn.style.display = 'block';
+                deleteTabBtn.innerText = `Delete "${activeList.name}"`;
+            }
+            
             editTabModal.classList.remove('hidden');
             setTimeout(() => editTabInput.focus(), 100);
         }
