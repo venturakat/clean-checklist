@@ -159,7 +159,8 @@
         let lists = [];
         let activeListId = 1;
         let nextListId = 3;
-        let sortableInstance = null;
+        let sortableTasksInstance = null;
+        let sortableTabsInstance = null;
 
         // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
@@ -218,17 +219,20 @@
             lists.forEach(list => {
                 const isActive = list.id === activeListId;
                 const btn = document.createElement('button');
-                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm flex items-center gap-1.5 ${
+                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm flex items-center gap-1.5 cursor-grab active:cursor-grabbing ${
                     isActive 
                         ? 'bg-[var(--button-color)] text-[var(--button-text-color)]' 
                         : 'bg-[var(--secondary-bg-color)] text-[var(--text-color)] opacity-80 hover:opacity-100 border border-[var(--hint-color)] border-opacity-20'
                 }`;
+                btn.dataset.id = list.id;
                 
                 btn.innerHTML = isActive 
                     ? `<span>${list.name}</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>` 
                     : list.name;
                 
                 btn.onclick = () => {
+                    // Prevent accidental selection trigger if dragging occurred
+                    if (btn.dataset.dragging === "true") return;
                     if (isActive) {
                         openEditTabModal();
                     } else {
@@ -246,6 +250,8 @@
             addTabBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
+
+            initSortableTabs();
         }
 
         function renderTasks() {
@@ -305,9 +311,9 @@
             }
         }
 
-        function initSortable() {
-            if (sortableInstance) sortableInstance.destroy();
-            sortableInstance = new Sortable(taskList, {
+        function initSortableTasks() {
+            if (sortableTasksInstance) sortableTasksInstance.destroy();
+            sortableTasksInstance = new Sortable(taskList, {
                 handle: '.drag-handle',
                 animation: 200,
                 delay: 100,
@@ -324,6 +330,32 @@
                         activeList.tasks.splice(newIndex, 0, movedTask);
                         saveData();
                         renderTasks();
+                    }
+                }
+            });
+        }
+
+        function initSortableTabs() {
+            if (sortableTabsInstance) sortableTabsInstance.destroy();
+            sortableTabsInstance = new Sortable(tabBar, {
+                animation: 200,
+                draggable: 'button:not(:last-child)', // Exclude the '+' add button from being dragged
+                filter: '.add-tab-btn',
+                onStart: function (evt) {
+                    evt.item.dataset.dragging = "true";
+                },
+                onEnd: function (evt) {
+                    setTimeout(() => {
+                        evt.item.dataset.dragging = "false";
+                    }, 50);
+
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    
+                    if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
+                        const [movedList] = lists.splice(oldIndex, 1);
+                        lists.splice(newIndex, 0, movedList);
+                        saveData();
                     }
                 }
             });
@@ -364,7 +396,6 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
-            // Check which standard lists are missing
             const hasCleaning = lists.some(l => l.name === 'Cleaning');
             const hasSupplies = lists.some(l => l.name === 'Supplies');
 
@@ -381,15 +412,12 @@
                 newTabSelect.appendChild(opt);
             }
 
-            // Always provide a custom option
             const customOpt = document.createElement('option');
             customOpt.value = 'custom';
             customOpt.textContent = 'Custom List...';
             newTabSelect.appendChild(customOpt);
 
-            // Trigger change handler to show/hide text input correctly
             handleNewTabSelectChange();
-
             newTabModal.classList.remove('hidden');
         }
 
@@ -480,7 +508,7 @@
         // Initial render
         renderTabs();
         renderTasks();
-        initSortable();
+        initSortableTasks();
 
     </script>
 </body>
