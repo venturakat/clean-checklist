@@ -81,17 +81,17 @@
         </div>
 
         <!-- Timer Bar (Only visible for timed lists) -->
-        <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-4 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10">
-            <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--destructive-text-color)] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10 gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--destructive-text-color)] animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span id="timer-display" class="text-xl font-mono font-bold tracking-wider">03:30:00</span>
+                <span id="timer-display" class="text-lg font-mono font-bold tracking-wider truncate">03:30</span>
             </div>
-            <div class="flex items-center gap-1.5">
-                <button id="timer-toggle-btn" class="bg-[var(--button-color)] text-[var(--button-text-color)] px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm">Start</button>
-                <button id="timer-stop-btn" class="bg-[var(--hint-color)] bg-opacity-20 text-[var(--text-color)] px-3 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform" title="Reset Timer">Reset</button>
-                <button id="uncheck-all-btn" class="bg-[var(--destructive-text-color)] bg-opacity-15 text-[var(--destructive-text-color)] px-3 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform" title="Uncheck all tasks">Uncheck All</button>
+            <div class="flex items-center gap-1 shrink-0">
+                <button id="timer-toggle-btn" class="bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm">Start</button>
+                <button id="timer-stop-btn" class="bg-[var(--hint-color)] bg-opacity-20 text-[var(--text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Reset Timer">Reset</button>
+                <button id="uncheck-all-btn" class="bg-[var(--destructive-text-color)] bg-opacity-15 text-[var(--destructive-text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Uncheck all tasks">Uncheck</button>
             </div>
         </div>
 
@@ -374,11 +374,26 @@
             return totalMins * 60;
         }
 
+        // Format as MM:SS or HH:MM without seconds for compactness
         function formatTime(totalSeconds) {
             const hrs = Math.floor(totalSeconds / 3600);
             const mins = Math.floor((totalSeconds % 3600) / 60);
+            if (hrs > 0) {
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}h`;
+            } else {
+                return `${String(mins).padStart(2, '0')}:00`;
+            }
+        }
+
+        // Precise mm:ss countdown for active tracking
+        function formatPreciseTime(totalSeconds) {
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
             const secs = totalSeconds % 60;
-            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            if (hrs > 0) {
+                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+            }
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
         function updateInputAreaState() {
@@ -391,7 +406,7 @@
                 if (!isTimerRunning) {
                     timerSecondsRemaining = timerTotalSeconds;
                 }
-                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
             } else {
                 taskTimeInput.classList.add('hidden');
                 timerContainer.classList.remove('flex');
@@ -412,12 +427,12 @@
             if (timerSecondsRemaining <= 0) return;
             isTimerRunning = true;
             timerToggleBtn.textContent = 'Pause';
-            timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm';
+            timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
             
             timerInterval = setInterval(() => {
                 if (timerSecondsRemaining > 0) {
                     timerSecondsRemaining--;
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                    timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
                     updateTaskVisualGradients();
                 } else {
                     stopTimer();
@@ -430,7 +445,7 @@
             isTimerRunning = false;
             clearInterval(timerInterval);
             timerToggleBtn.textContent = 'Start';
-            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm';
+            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
         }
 
         function stopTimer() {
@@ -439,7 +454,7 @@
             if (activeList.type === 'timed') {
                 timerTotalSeconds = calculateTotalSeconds(activeList);
                 timerSecondsRemaining = timerTotalSeconds;
-                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
                 updateTaskVisualGradients();
             }
         }
@@ -706,7 +721,7 @@
                     if (timerSecondsRemaining > timerTotalSeconds) {
                         timerSecondsRemaining = timerTotalSeconds;
                     }
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                    timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
                 }
 
                 saveData(); 
