@@ -9,7 +9,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://venturakat.github.io/clean-checklist/icon.png">
+    <link rel="apple-touch-icon" href="https://yourusername.github.io/clean-checklist/icon.png"> <!-- Keep your actual GitHub URL here! -->
 
     <!-- SortableJS Library for Drag and Drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -381,6 +381,7 @@
             activeList.tasks.forEach(task => {
                 const div = document.createElement('div');
                 div.className = 'task-item';
+                // Using data-id to help Sortable track which item moved
                 div.dataset.id = task.id; 
                 
                 div.innerHTML = `
@@ -397,15 +398,17 @@
         // 4. Initialize Drag and Drop (SortableJS)
         new Sortable(taskList, {
             animation: 150,
-            delay: 200,
-            delayOnTouchOnly: true,
+            delay: 200, // Important: Requires holding finger for 0.2s before dragging starts
+            delayOnTouchOnly: true, // Standard clicks/touches still work instantly
             ghostClass: 'sortable-ghost',
             dragClass: 'sortable-drag',
             onEnd: function (evt) {
+                // If it wasn't actually moved, do nothing
                 if (evt.oldIndex === evt.newIndex) return;
 
                 const activeList = appData.lists.find(l => l.id === activeListId);
                 
+                // Reorder the array based on the drag
                 const movedItem = activeList.tasks.splice(evt.oldIndex, 1)[0];
                 activeList.tasks.splice(evt.newIndex, 0, movedItem);
                 
