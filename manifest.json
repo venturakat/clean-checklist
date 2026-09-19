@@ -3,7 +3,7 @@
   "name": "Clean Checklist",
   "icons": [
     {
-      "src": "https://venturakat.github.io/clean-checklist/icon.png",
+      "src": "icon.png",
       "type": "image/png",
       "sizes": "192x192 512x512"
     }

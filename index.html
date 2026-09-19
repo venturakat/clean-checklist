@@ -3,496 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clean Checklist</title>
-
-    <!-- PWA Meta Tags for Home Screen Installation -->
-    <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="https://yourusername.github.io/clean-checklist/icon.png"> <!-- Keep your actual GitHub URL here! -->
-
-    <!-- SortableJS Library for Drag and Drop -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <title>Clean Checklist</title>
+    
+    <!-- PWA / Home Screen Support -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    
+    <!-- Telegram Web App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* iOS-Style Light Theme (Default) */
+        /* 
+           Fallback variables in case the app is opened outside of Telegram.
+           Telegram will automatically inject its own variables that override these.
+        */
         :root {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --hint-color: #8e8e93;
-            --button-color: #007aff;
-            --button-text-color: #ffffff;
-            --secondary-bg: #f2f2f7;
-            --border-color: #e5e5ea;
-            --drag-shadow: rgba(0, 0, 0, 0.15);
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-button-color: #3390ec;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f4f4f5;
+            --tg-theme-destructive-text-color: #e53935;
         }
 
-        /* Native System Dark Mode */
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg-color: #000000;
-                --text-color: #ffffff;
-                --hint-color: #ebebf5;
-                --button-color: #0a84ff;
-                --secondary-bg: #1c1c1e;
-                --border-color: #38383a;
-                --drag-shadow: rgba(255, 255, 255, 0.1);
+                --tg-theme-bg-color: #212121;
+                --tg-theme-text-color: #ffffff;
+                --tg-theme-hint-color: #aaaaaa;
+                --tg-theme-button-color: #8774e1;
+                --tg-theme-button-text-color: #ffffff;
+                --tg-theme-secondary-bg-color: #0f0f0f;
+                --tg-theme-destructive-text-color: #ff595a;
             }
         }
 
-        /* Global Reset and Body Styling */
-        * { box-sizing: border-box; }
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            /* Use Telegram's background and text color variables directly on the body */
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            overscroll-behavior-y: none; /* Prevents iOS bounce */
             margin: 0;
             padding: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
+            /* Prevent overscroll bounce on mobile */
+            overscroll-behavior-y: none; 
         }
 
-        /* Header & Greeting */
-        header { padding: 20px 20px 10px 20px; }
-        h1 { margin: 0; font-size: 24px; font-weight: 700; }
-
-        /* Tabs Navigation */
-        .tabs-container {
-            display: flex;
-            align-items: center;
-            overflow-x: auto;
-            padding: 10px 20px;
-            gap: 10px;
-            background-color: var(--bg-color);
-            border-bottom: 1px solid var(--border-color);
+        /* Custom scrollbar for webkit to match theme */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px; /* Added for horizontal scrollbar */
         }
-        .tabs-container::-webkit-scrollbar { display: none; }
-        .tabs-container { -ms-overflow-style: none; scrollbar-width: none; }
-
-        .tab {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background-color: var(--secondary-bg);
-            color: var(--text-color);
-            border: none;
-            font-size: 15px;
-            font-weight: 500;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .tab.active {
-            background-color: var(--button-color);
-            color: var(--button-text-color);
-        }
-        
-        .delete-list-btn {
-            margin-left: 8px;
-            padding-left: 8px;
-            border-left: 1px solid rgba(255,255,255,0.4);
-            font-size: 18px;
-            line-height: 1;
-            opacity: 0.8;
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--tg-theme-hint-color);
+            border-radius: 10px;
         }
 
-        .add-tab-btn {
-            background-color: transparent;
-            color: var(--button-color);
-            font-size: 22px;
-            padding: 0 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* Main Content List */
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 20px;
-            padding-bottom: 20px;
-        }
-        
-        .task-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 10px;
-            margin: 0 -10px; /* Expands touch area */
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--bg-color);
-            transition: background-color 0.2s;
-        }
-        .task-item:last-child { border-bottom: none; }
-        
-        /* Drag and Drop Styling */
-        .sortable-ghost {
-            opacity: 0.3;
-            background-color: var(--secondary-bg);
-        }
-        .sortable-drag {
-            box-shadow: 0 10px 20px var(--drag-shadow);
-            border-radius: 12px;
-            z-index: 100;
-            border-bottom: none;
-        }
-        
-        .task-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex: 1;
-            cursor: pointer;
-        }
-        
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            accent-color: var(--button-color);
-            cursor: pointer;
-        }
-        
-        .task-text {
-            font-size: 17px;
-            transition: color 0.2s, text-decoration 0.2s;
-        }
-        .task-text.completed {
-            text-decoration: line-through;
-            color: var(--hint-color);
-        }
-        
-        .delete-btn {
-            color: #ff3b30;
-            background: none;
-            border: none;
-            font-size: 24px;
-            line-height: 1;
-            cursor: pointer;
-            padding: 4px 10px;
-            opacity: 0.8;
-        }
-
-        /* Input Area for New Tasks */
-        .input-area {
-            display: flex;
-            padding: 16px 20px 24px 20px;
-            border-top: 1px solid var(--border-color);
-            background: var(--bg-color);
-            gap: 10px;
-        }
-        .input-area input {
-            flex: 1;
-            padding: 14px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            background: var(--secondary-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            outline: none;
-        }
-        .input-area input::placeholder { color: var(--hint-color); }
-        .input-area button {
-            padding: 0 20px;
-            border: none;
-            border-radius: 12px;
-            background: var(--button-color);
-            color: var(--button-text-color);
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        /* Modal for creating a new list */
-        .modal {
+        /* Hide scrollbar completely for tab navigation */
+        .scrollbar-hide::-webkit-scrollbar {
             display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
         }
-        .modal.show { display: flex; }
-        .modal-content {
-            background: var(--bg-color);
-            padding: 24px;
-            border-radius: 16px;
-            width: 85%;
-            max-width: 320px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .modal-content h3 { margin: 0; font-size: 18px; }
-        .modal-content input {
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--secondary-bg);
-            color: var(--text-color);
-            font-size: 16px;
-            outline: none;
-        }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
-        .modal-actions button {
-            padding: 10px 16px;
-            border-radius: 8px;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-        }
-        .btn-cancel { background: transparent; color: var(--hint-color); }
-        .btn-save { background: var(--button-color); color: var(--button-text-color); }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col p-4">
 
-    <header>
-        <h1 id="greeting">Stay productive!</h1>
-    </header>
+    <div class="max-w-md w-full mx-auto flex flex-col h-full gap-4">
+        
+        <!-- Header -->
+        <header class="py-2 shrink-0">
+            <h1 class="text-2xl font-bold">Clean Checklist</h1>
+            <p class="text-[var(--tg-theme-hint-color)] text-sm mt-1" id="greeting">Stay productive today.</p>
+        </header>
 
-    <div class="tabs-container" id="tabsContainer">
-        <!-- Tabs injected here by JS -->
+        <!-- Tabs Area -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 scrollbar-hide" id="tab-bar">
+            <!-- Tabs will be injected here via JavaScript -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="flex gap-2 w-full shrink-0">
+            <input 
+                type="text" 
+                id="task-input" 
+                placeholder="Add a new task..." 
+                class="flex-1 bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+            >
+            <button 
+                id="add-btn" 
+                class="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl px-5 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Checklist Area -->
+        <div class="flex-1 overflow-y-auto mt-2">
+            <ul id="task-list" class="flex flex-col gap-2 pb-20">
+                <!-- Tasks will be injected here via JavaScript -->
+            </ul>
+        </div>
+        
+        <!-- Empty State Container -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--tg-theme-hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            <p class="text-[var(--tg-theme-hint-color)]">Your checklist is empty.<br>Add some tasks to get started!</p>
+        </div>
+
     </div>
 
-    <div class="content" id="taskList">
-        <!-- Tasks injected here by JS -->
-    </div>
-
-    <div class="input-area">
-        <input type="text" id="newTaskInput" placeholder="Add a new item...">
-        <button id="addTaskBtn">Add</button>
-    </div>
-
-    <!-- New List Modal -->
-    <div class="modal" id="newListModal">
-        <div class="modal-content">
-            <h3>Create New List</h3>
-            <input type="text" id="newListName" placeholder="E.g., Groceries">
-            <div class="modal-actions">
-                <button class="btn-cancel" id="cancelListBtn">Cancel</button>
-                <button class="btn-save" id="saveListBtn">Create</button>
+    <!-- New Tab Modal (Replaces browser prompts for better UI) -->
+    <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-[var(--tg-theme-bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--tg-theme-secondary-bg-color)]">
+            <h2 class="text-xl font-bold">Create New List</h2>
+            <input 
+                type="text" 
+                id="new-tab-input" 
+                placeholder="E.g., Groceries, Packing..." 
+                class="w-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+            >
+            <div class="flex gap-2 justify-end mt-2">
+                <button id="cancel-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors">Cancel</button>
+                <button id="save-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform">Create</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. Default Lists Configuration
+        // Initialize Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Expand the web app to full height
+        tg.expand();
+
+        // Notify Telegram that the app is fully loaded and ready to be displayed
+        tg.ready();
+
+        // Get user info if available and set greeting with fallback
+        const user = tg.initDataUnsafe?.user;
+        const firstName = (user && user.first_name) ? user.first_name : 'there';
+        document.getElementById('greeting').innerText = `Stay productive, ${firstName}!`;
+
         const defaultTasks = [
-            "Vacuuming the floors", "Dusting the kitchen", "Dishes", 
-            "Kitchen surfaces", "Window boards", "Table", "Mirrors", 
-            "Lamps", "Change the bedsheets", "Sofa", "Ironing", 
-            "Dusting the rooms", "Baseboards", "Toilet", "Litterboxes", 
-            "Shower", "Vanity area", "Bathroom sink", "Vacuuming", 
+            "Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces",
+            "Window boards", "Table", "Mirrors", "Lamps", "Change the bedsheets",
+            "Sofa", "Ironing", "Dusting the rooms", "Baseboards", "Toilet",
+            "Litterboxes", "Shower", "Vanity area", "Bathroom sink", "Vacuuming",
             "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"
         ];
+
         const defaultSupplies = [
-            "Gloves", "Sponges", "Toilet paper", "Domestos", 
+            "Gloves", "Sponges", "Toilet paper", "Domestos",
             "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"
         ];
 
-        // 2. State Management (Local Storage)
-        let appData = JSON.parse(localStorage.getItem('cleanChecklistData'));
+        // State variables
+        let lists = [];
+        let activeListId = 1;
+        let nextListId = 3;
+
+        // Load multi-list data or handle migration from older single-list version
+        const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
         
-        if (!appData || !appData.lists || appData.lists.length === 0) {
-            appData = {
-                lists: [
-                    { id: 1, name: "Cleaning", tasks: defaultTasks.map((t, i) => ({ id: i, text: t, completed: false })) },
-                    { id: 2, name: "Supplies", tasks: defaultSupplies.map((t, i) => ({ id: i + 100, text: t, completed: false })) }
-                ],
-                activeListId: 1,
-                nextTaskId: 200,
-                nextListId: 3
-            };
+        if (savedMultiData) {
+            const parsed = JSON.parse(savedMultiData);
+            lists = parsed.lists || [];
+            activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
+            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 3;
+        } else {
+            // Check for older single list data to migrate securely
+            const oldSavedTasks = localStorage.getItem('cleanChecklistTasks');
+            let initialTasks = [];
+            let initialNextId = 1;
+            
+            if (oldSavedTasks) {
+                initialTasks = JSON.parse(oldSavedTasks);
+                initialNextId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
+            } else {
+                // Completely new user defaults
+                initialTasks = defaultTasks.map((text, index) => ({
+                    id: index + 1,
+                    text: text,
+                    completed: false
+                }));
+                initialNextId = defaultTasks.length + 1;
+            }
+
+            const suppliesTasks = defaultSupplies.map((text, index) => ({
+                id: index + 1,
+                text: text,
+                completed: false
+            }));
+
+            lists = [
+                {
+                    id: 1,
+                    name: 'Cleaning',
+                    tasks: initialTasks,
+                    nextTaskId: initialNextId
+                },
+                {
+                    id: 2,
+                    name: 'Supplies',
+                    tasks: suppliesTasks,
+                    nextTaskId: defaultSupplies.length + 1
+                }
+            ];
+            
+            activeListId = 1;
             saveData();
         }
 
-        let activeListId = appData.activeListId || appData.lists[0].id;
-
+        // Helper to save current multi-list state
         function saveData() {
-            appData.activeListId = activeListId;
-            localStorage.setItem('cleanChecklistData', JSON.stringify(appData));
+            localStorage.setItem('cleanChecklistMultiData', JSON.stringify({
+                lists: lists,
+                activeListId: activeListId
+            }));
         }
 
-        function triggerHaptic() {
-            if (navigator.vibrate) navigator.vibrate(50);
-        }
-
-        // 3. Render Functions
-        const tabsContainer = document.getElementById('tabsContainer');
-        const taskList = document.getElementById('taskList');
-        const newTaskInput = document.getElementById('newTaskInput');
+        const taskInput = document.getElementById('task-input');
+        const addBtn = document.getElementById('add-btn');
+        const taskList = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+        const tabBar = document.getElementById('tab-bar');
         
-        function renderTabs() {
-            tabsContainer.innerHTML = '';
-            
-            appData.lists.forEach(list => {
-                const btn = document.createElement('button');
-                btn.className = `tab ${list.id === activeListId ? 'active' : ''}`;
-                btn.innerText = list.name;
-                
-                if (list.id === activeListId && appData.lists.length > 1) {
-                    const deleteSpan = document.createElement('span');
-                    deleteSpan.innerHTML = ' &times;';
-                    deleteSpan.className = 'delete-list-btn';
-                    deleteSpan.onclick = (e) => {
-                        e.stopPropagation();
-                        deleteList(list.id, list.name);
-                    };
-                    btn.appendChild(deleteSpan);
-                }
+        const newTabModal = document.getElementById('new-tab-modal');
+        const newTabInput = document.getElementById('new-tab-input');
+        const cancelTabBtn = document.getElementById('cancel-tab-btn');
+        const saveTabBtn = document.getElementById('save-tab-btn');
 
+        // Get the currently active list object
+        function getActiveList() {
+            return lists.find(l => l.id === activeListId) || lists[0];
+        }
+
+        function renderTabs() {
+            tabBar.innerHTML = '';
+            
+            lists.forEach(list => {
+                const isActive = list.id === activeListId;
+                const btn = document.createElement('button');
+                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm ${
+                    isActive 
+                        ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' 
+                        : 'bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] opacity-80 hover:opacity-100 border border-[var(--tg-theme-hint-color)] border-opacity-20'
+                }`;
+                btn.innerText = list.name;
                 btn.onclick = () => {
                     activeListId = list.id;
                     saveData();
-                    triggerHaptic();
+                    if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                     renderTabs();
                     renderTasks();
                 };
-                tabsContainer.appendChild(btn);
+                tabBar.appendChild(btn);
             });
 
-            const addBtn = document.createElement('button');
-            addBtn.className = 'add-tab-btn';
-            addBtn.innerText = '+';
-            addBtn.onclick = () => {
-                document.getElementById('newListModal').classList.add('show');
-                document.getElementById('newListName').focus();
-            };
-            tabsContainer.appendChild(addBtn);
+            // Add '+' Tab Button
+            const addTabBtn = document.createElement('button');
+            addTabBtn.className = 'flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--tg-theme-hint-color)] border-opacity-20';
+            addTabBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            `;
+            addTabBtn.onclick = openNewTabModal;
+            tabBar.appendChild(addTabBtn);
         }
 
         function renderTasks() {
-            taskList.innerHTML = '';
-            const activeList = appData.lists.find(l => l.id === activeListId);
+            taskList.innerHTML = ''; 
+            const activeList = getActiveList();
             
             if (!activeList || activeList.tasks.length === 0) {
-                taskList.innerHTML = `<p style="color: var(--hint-color); text-align: center; margin-top: 40px;">No items in this list yet.</p>`;
-                return;
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
             }
 
-            activeList.tasks.forEach(task => {
-                const div = document.createElement('div');
-                div.className = 'task-item';
-                // Using data-id to help Sortable track which item moved
-                div.dataset.id = task.id; 
-                
-                div.innerHTML = `
-                    <div class="task-left" onclick="toggleTask(${task.id})">
-                        <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="event.stopPropagation(); toggleTask(${task.id})">
-                        <span class="task-text ${task.completed ? 'completed' : ''}">${task.text}</span>
-                    </div>
-                    <button class="delete-btn" onclick="deleteTask(${task.id})">×</button>
-                `;
-                taskList.appendChild(div);
-            });
+            if (activeList) {
+                activeList.tasks.forEach(task => {
+                    const li = document.createElement('li');
+                    li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-60' : ''}`;
+                    
+                    const leftDiv = document.createElement('div');
+                    leftDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer';
+                    leftDiv.onclick = () => toggleTask(task.id);
+
+                    const checkbox = document.createElement('div');
+                    checkbox.className = `w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                        task.completed 
+                            ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' 
+                            : 'border-[var(--tg-theme-hint-color)] text-transparent'
+                    }`;
+                    checkbox.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+
+                    const span = document.createElement('span');
+                    span.className = `text-[var(--tg-theme-text-color)] text-base select-none transition-all duration-200 ${task.completed ? 'line-through text-[var(--tg-theme-hint-color)]' : ''}`;
+                    span.innerText = task.text;
+
+                    leftDiv.appendChild(checkbox);
+                    leftDiv.appendChild(span);
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-destructive-text-color)] active:scale-90 transition-all rounded-lg';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation(); 
+                        deleteTask(task.id);
+                    };
+                    deleteBtn.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    `;
+
+                    li.appendChild(leftDiv);
+                    li.appendChild(deleteBtn);
+                    taskList.appendChild(li);
+                });
+            }
         }
 
-        // 4. Initialize Drag and Drop (SortableJS)
-        new Sortable(taskList, {
-            animation: 150,
-            delay: 200, // Important: Requires holding finger for 0.2s before dragging starts
-            delayOnTouchOnly: true, // Standard clicks/touches still work instantly
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            onEnd: function (evt) {
-                // If it wasn't actually moved, do nothing
-                if (evt.oldIndex === evt.newIndex) return;
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text === '') return;
 
-                const activeList = appData.lists.find(l => l.id === activeListId);
-                
-                // Reorder the array based on the drag
-                const movedItem = activeList.tasks.splice(evt.oldIndex, 1)[0];
-                activeList.tasks.splice(evt.newIndex, 0, movedItem);
-                
-                saveData();
-                triggerHaptic();
-            }
-        });
+            const activeList = getActiveList();
+            if (!activeList) return;
 
-        // 5. Task and List Actions
-        function deleteList(id, name) {
-            if (confirm(`Are you sure you want to delete the "${name}" list?`)) {
-                appData.lists = appData.lists.filter(l => l.id !== id);
-                activeListId = appData.lists[0].id;
-                saveData();
-                triggerHaptic();
-                renderTabs();
-                renderTasks();
-            }
+            activeList.tasks.push({
+                id: activeList.nextTaskId++,
+                text: text,
+                completed: false
+            });
+
+            taskInput.value = ''; 
+            saveData(); 
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+            renderTasks();
+            taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
         }
 
         function toggleTask(id) {
-            const list = appData.lists.find(l => l.id === activeListId);
-            const task = list.tasks.find(t => t.id === id);
+            const activeList = getActiveList();
+            if (!activeList) return;
+
+            const task = activeList.tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
-                saveData();
-                triggerHaptic();
+                saveData(); 
+                
+                if (tg.HapticFeedback) {
+                    if (task.completed) tg.HapticFeedback.notificationOccurred('success');
+                    else tg.HapticFeedback.impactOccurred('light');
+                }
                 renderTasks();
             }
         }
 
         function deleteTask(id) {
-            const list = appData.lists.find(l => l.id === activeListId);
-            list.tasks = list.tasks.filter(t => t.id !== id);
-            saveData();
-            triggerHaptic();
+            const activeList = getActiveList();
+            if (!activeList) return;
+
+            activeList.tasks = activeList.tasks.filter(t => t.id !== id);
+            saveData(); 
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             renderTasks();
         }
 
-        document.getElementById('addTaskBtn').onclick = () => {
-            const text = newTaskInput.value.trim();
-            if (text) {
-                const list = appData.lists.find(l => l.id === activeListId);
-                list.tasks.push({ id: appData.nextTaskId++, text: text, completed: false });
-                newTaskInput.value = '';
-                saveData();
-                triggerHaptic();
-                renderTabs();
-                renderTasks();
-                taskList.scrollTop = taskList.scrollHeight;
-            }
-        };
+        function openNewTabModal() {
+            newTabInput.value = '';
+            newTabModal.classList.remove('hidden');
+            setTimeout(() => newTabInput.focus(), 100);
+        }
 
-        newTaskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') document.getElementById('addTaskBtn').click();
+        function closeNewTabModal() {
+            newTabModal.classList.add('hidden');
+        }
+
+        function createNewTab() {
+            const name = newTabInput.value.trim();
+            if (name === '') return;
+
+            const newList = {
+                id: nextListId++,
+                name: name,
+                tasks: [],
+                nextTaskId: 1
+            };
+            
+            lists.push(newList);
+            activeListId = newList.id; // Switch to the newly created tab automatically
+            saveData();
+            
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            
+            closeNewTabModal();
+            renderTabs();
+            renderTasks();
+        }
+
+        addBtn.addEventListener('click', addTask);
+        
+        taskInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') addTask();
         });
 
-        // 6. Modal Logic
-        const modal = document.getElementById('newListModal');
-        const newListNameInput = document.getElementById('newListName');
+        cancelTabBtn.addEventListener('click', closeNewTabModal);
         
-        document.getElementById('cancelListBtn').onclick = () => {
-            modal.classList.remove('show');
-            newListNameInput.value = '';
-        };
+        saveTabBtn.addEventListener('click', createNewTab);
+        
+        newTabInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') createNewTab();
+        });
 
-        document.getElementById('saveListBtn').onclick = () => {
-            const name = newListNameInput.value.trim();
-            if (name) {
-                const newListId = appData.nextListId++;
-                appData.lists.push({ id: newListId, name: name, tasks: [] });
-                activeListId = newListId;
-                saveData();
-                triggerHaptic();
-                modal.classList.remove('show');
-                newListNameInput.value = '';
-                renderTabs();
-                renderTasks();
-            }
-        };
-
-        // Initial Render
+        // Initial setup sequence
         renderTabs();
         renderTasks();
+
     </script>
 </body>
 </html>
