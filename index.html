@@ -153,8 +153,28 @@
     </div>
 
     <script>
-        const defaultTasks = ["Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces", "Window boards", "Table", "Mirrors", "Lamps", "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms", "Baseboards", "Toilet", "Litterboxes", "Shower", "Vanity area", "Bathroom sink", "Vacuuming", "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"];
+        const defaultTasks = [
+            "Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces", 
+            "Kitchen sink", "Window boards", "Table", "Mirrors", "Lamps", 
+            "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms", 
+            "Baseboards", "Toilet", "Litterboxes", "Shower", "Vanity area", 
+            "Bathroom sink", "Vacuuming", "Floors", "Wash the towels & rugs", 
+            "Wash the bedsheets", "Trash"
+        ];
+        
         const defaultSupplies = ["Gloves", "Sponges", "Toilet paper", "Domestos", "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"];
+
+        const defaultDeepClean = [
+            "Vacuuming the floors", "Washing the curtains", "Washing the cat bed", "Washing decorative textile",
+            "Dusting the kitchen", "Dishes", "Wine glasses", "Kitchen cabinets",
+            "Under the sink cabinets", "Fridge", "Airfryer", "Toaster",
+            "Coffemaker area", "Kitchen surfaces", "Kitchen sink", "Window boards",
+            "Table", "Books", "Flowers", "Mirrors", "Lamps",
+            "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms",
+            "Baseboards", "Baseboards behind the furniture", "Toilet", "Litterboxes",
+            "Washing machine", "Shower", "Vanity area", "Bathroom sink",
+            "Vacuuming", "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"
+        ];
 
         let lists = [];
         let activeListId = 1;
@@ -231,7 +251,6 @@
                     : list.name;
                 
                 btn.onclick = () => {
-                    // Prevent accidental selection trigger if dragging occurred
                     if (btn.dataset.dragging === "true") return;
                     if (isActive) {
                         openEditTabModal();
@@ -339,7 +358,7 @@
             if (sortableTabsInstance) sortableTabsInstance.destroy();
             sortableTabsInstance = new Sortable(tabBar, {
                 animation: 200,
-                draggable: 'button:not(:last-child)', // Exclude the '+' add button from being dragged
+                draggable: 'button:not(:last-child)', 
                 filter: '.add-tab-btn',
                 onStart: function (evt) {
                     evt.item.dataset.dragging = "true";
@@ -392,23 +411,30 @@
             renderTasks();
         }
 
-        // New Tab Logic with Smart Options
+        // New Tab Logic with Preset Options
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
             const hasCleaning = lists.some(l => l.name === 'Cleaning');
             const hasSupplies = lists.some(l => l.name === 'Supplies');
+            const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
 
             if (!hasCleaning) {
                 const opt = document.createElement('option');
                 opt.value = 'Cleaning';
-                opt.textContent = 'Cleaning (Standard List)';
+                opt.textContent = 'Cleaning Preset';
                 newTabSelect.appendChild(opt);
             }
             if (!hasSupplies) {
                 const opt = document.createElement('option');
                 opt.value = 'Supplies';
-                opt.textContent = 'Supplies (Standard List)';
+                opt.textContent = 'Supplies Preset';
+                newTabSelect.appendChild(opt);
+            }
+            if (!hasDeepClean) {
+                const opt = document.createElement('option');
+                opt.value = 'Deep Clean';
+                opt.textContent = 'Deep Clean Preset';
                 newTabSelect.appendChild(opt);
             }
 
@@ -448,6 +474,8 @@
                     initialTasks = defaultTasks.map((text, index) => ({ id: index + 1, text: text, completed: false }));
                 } else if (name === 'Supplies') {
                     initialTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                } else if (name === 'Deep Clean') {
+                    initialTasks = defaultDeepClean.map((text, index) => ({ id: index + 1, text: text, completed: false }));
                 }
             }
 
