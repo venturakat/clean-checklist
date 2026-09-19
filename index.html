@@ -183,6 +183,26 @@
         </div>
     </div>
 
+    <!-- Edit Task Time Modal -->
+    <div id="edit-time-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
+            <h2 class="text-xl font-bold">Edit Task Time</h2>
+            <p id="edit-time-task-name" class="text-sm text-[var(--hint-color)] truncate"></p>
+            <input 
+                type="number" 
+                id="edit-time-input" 
+                placeholder="Minutes" 
+                min="1" 
+                max="300"
+                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all font-medium text-center text-lg"
+            >
+            <div class="flex gap-2 justify-end mt-2">
+                <button id="cancel-time-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--hint-color)] hover:bg-[var(--secondary-bg-color)] transition-colors">Cancel</button>
+                <button id="save-time-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--button-color)] text-[var(--button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const defaultCleaningTasks = [
             { text: "Vacuuming the floors", time: 15 },
@@ -274,6 +294,9 @@
         let timerInterval = null;
         let isTimerRunning = false;
 
+        // Active task being edited in modal
+        let editingTaskId = null;
+
         // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
         if (savedMultiData) {
@@ -330,6 +353,11 @@
         const editTabModal = document.getElementById('edit-tab-modal');
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
+
+        // Edit Time Modal Elements
+        const editTimeModal = document.getElementById('edit-time-modal');
+        const editTimeTaskName = document.getElementById('edit-time-task-name');
+        const editTimeInput = document.getElementById('edit-time-input');
 
         function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
 
@@ -494,8 +522,13 @@
 
                     if (activeList.type === 'timed' && task.time > 0) {
                         const timeSpan = document.createElement('span');
-                        timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold';
+                        timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
                         timeSpan.innerText = `${task.time}m`;
+                        timeSpan.title = "Tap to edit time";
+                        timeSpan.onclick = (e) => {
+                            e.stopPropagation();
+                            openEditTimeModal(task.id);
+                        };
                         rightSideDiv.appendChild(timeSpan);
                     }
 
@@ -543,7 +576,7 @@
                 animation: 200,
                 draggable: 'button:not(:last-child)', 
                 filter: '.add-tab-btn',
-                delay: 150, // Added slight delay so horizontal swipe scrolling works cleanly without accidental drags
+                delay: 150,
                 delayOnTouchOnly: true,
                 onStart: function (evt) {
                     evt.item.dataset.dragging = "true";
@@ -612,6 +645,42 @@
             updateInputAreaState();
         }
 
+        // Edit Task Time Modal Logic
+        function openEditTimeModal(taskId) {
+            const activeList = getActiveList();
+            const task = activeList.tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            editingTaskId = taskId;
+            editTimeTaskName.textContent = task.text;
+            editTimeInput.value = task.time;
+            editTimeModal.classList.remove('hidden');
+            setTimeout(() => {
+                editTimeInput.focus();
+                editTimeInput.select();
+            }, 100);
+        }
+
+        function closeEditTimeModal() {
+            editTimeModal.classList.add('hidden');
+            editingTaskId = null;
+        }
+
+        function saveTaskTime() {
+            if (editingTaskId === null) return;
+            const activeList = getActiveList();
+            const task = activeList.tasks.find(t => t.id === editingTaskId);
+            if (task) {
+                const newTime = Number(editTimeInput.value);
+                task.time = isNaN(newTime) || newTime < 0 ? 0 : newTime;
+                saveData();
+                renderTasks();
+                updateInputAreaState();
+            }
+            closeEditTimeModal();
+        }
+
+        // New Tab Modal Logic
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
@@ -749,6 +818,11 @@
         document.getElementById('save-edit-tab-btn').addEventListener('click', saveEditTab);
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
+
+        // Edit Time Modal Listeners
+        document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
+        document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
+        editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
 
         // Initial render
         renderTabs();
