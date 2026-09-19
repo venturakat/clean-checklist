@@ -138,10 +138,10 @@
                 class="w-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
             >
             <div class="flex gap-2 justify-between mt-2">
-                <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-destructive-text-color)] bg-[var(--tg-theme-destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
+                <button id="delete-tab-btn" class="px-4 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-destructive-text-color)] bg-[var(--tg-theme-destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors text-sm">Delete</button>
                 <div class="flex gap-2">
-                    <button id="cancel-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors">Cancel</button>
-                    <button id="save-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
+                    <button id="cancel-edit-tab-btn" class="px-4 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors text-sm">Cancel</button>
+                    <button id="save-edit-tab-btn" class="px-4 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform text-sm">Save</button>
                 </div>
             </div>
         </div>
@@ -227,7 +227,6 @@
                         : 'bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] opacity-80 hover:opacity-100 border border-[var(--tg-theme-hint-color)] border-opacity-20'
                 }`;
                 
-                // Add a small pencil icon if active to indicate it can be tapped to edit
                 btn.innerHTML = isActive 
                     ? `<span>${list.name}</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>` 
                     : list.name;
@@ -315,7 +314,7 @@
             sortableInstance = new Sortable(taskList, {
                 handle: '.drag-handle',
                 animation: 200,
-                delay: 100, // Small delay prevents accidental dragging when trying to scroll
+                delay: 100,
                 delayOnTouchOnly: true,
                 onEnd: function (evt) {
                     const activeList = getActiveList();
@@ -329,7 +328,7 @@
                         activeList.tasks.splice(newIndex, 0, movedTask);
                         saveData();
                         if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                        renderTasks(); // Keep DOM perfectly synced with array
+                        renderTasks();
                     }
                 }
             });
@@ -397,7 +396,6 @@
             const activeList = getActiveList();
             editTabInput.value = activeList.name;
             
-            // Update delete button text and visibility
             if (lists.length <= 1) {
                 deleteTabBtn.style.display = 'none';
             } else {
