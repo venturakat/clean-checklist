@@ -83,10 +83,10 @@
         <!-- Timer Bar (Only visible for timed lists) -->
         <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10 gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--destructive-text-color)] animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--destructive-text-color)] animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span id="timer-display" class="text-lg font-mono font-bold tracking-wider truncate">03:30</span>
+                <span id="timer-display" class="text-base font-mono font-bold tracking-tight truncate">00:00:00</span>
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button id="timer-toggle-btn" class="bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm">Start</button>
@@ -374,26 +374,12 @@
             return totalMins * 60;
         }
 
-        // Format as MM:SS or HH:MM without seconds for compactness
+        // Full HH:MM:SS format restored with compact sizing
         function formatTime(totalSeconds) {
             const hrs = Math.floor(totalSeconds / 3600);
             const mins = Math.floor((totalSeconds % 3600) / 60);
-            if (hrs > 0) {
-                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}h`;
-            } else {
-                return `${String(mins).padStart(2, '0')}:00`;
-            }
-        }
-
-        // Precise mm:ss countdown for active tracking
-        function formatPreciseTime(totalSeconds) {
-            const hrs = Math.floor(totalSeconds / 3600);
-            const mins = Math.floor((totalSeconds % 3600) / 60);
             const secs = totalSeconds % 60;
-            if (hrs > 0) {
-                return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
-            }
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
         function updateInputAreaState() {
@@ -406,7 +392,7 @@
                 if (!isTimerRunning) {
                     timerSecondsRemaining = timerTotalSeconds;
                 }
-                timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
+                timerDisplay.textContent = formatTime(timerSecondsRemaining);
             } else {
                 taskTimeInput.classList.add('hidden');
                 timerContainer.classList.remove('flex');
@@ -432,7 +418,7 @@
             timerInterval = setInterval(() => {
                 if (timerSecondsRemaining > 0) {
                     timerSecondsRemaining--;
-                    timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
+                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
                     updateTaskVisualGradients();
                 } else {
                     stopTimer();
@@ -454,7 +440,7 @@
             if (activeList.type === 'timed') {
                 timerTotalSeconds = calculateTotalSeconds(activeList);
                 timerSecondsRemaining = timerTotalSeconds;
-                timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
+                timerDisplay.textContent = formatTime(timerSecondsRemaining);
                 updateTaskVisualGradients();
             }
         }
@@ -721,7 +707,7 @@
                     if (timerSecondsRemaining > timerTotalSeconds) {
                         timerSecondsRemaining = timerTotalSeconds;
                     }
-                    timerDisplay.textContent = formatPreciseTime(timerSecondsRemaining);
+                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
                 }
 
                 saveData(); 
