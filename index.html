@@ -111,12 +111,20 @@
     <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New List</h2>
+            
+            <select 
+                id="new-tab-select" 
+                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all">
+                <!-- Options injected via JS -->
+            </select>
+
             <input 
                 type="text" 
                 id="new-tab-input" 
-                placeholder="E.g., Groceries, Packing..." 
-                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
+                placeholder="Enter custom list name..." 
+                class="hidden w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
+
             <div class="flex gap-2 justify-end mt-2">
                 <button id="cancel-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--hint-color)] hover:bg-[var(--secondary-bg-color)] transition-colors">Cancel</button>
                 <button id="save-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--button-color)] text-[var(--button-text-color)] shadow-sm active:scale-95 transition-transform">Create</button>
@@ -195,6 +203,7 @@
         
         // Modals
         const newTabModal = document.getElementById('new-tab-modal');
+        const newTabSelect = document.getElementById('new-tab-select');
         const newTabInput = document.getElementById('new-tab-input');
         
         const editTabModal = document.getElementById('edit-tab-modal');
@@ -351,17 +360,72 @@
             renderTasks();
         }
 
-        // New Tab Logic
+        // New Tab Logic with Smart Options
         function openNewTabModal() {
-            newTabInput.value = '';
+            newTabSelect.innerHTML = '';
+            
+            // Check which standard lists are missing
+            const hasCleaning = lists.some(l => l.name === 'Cleaning');
+            const hasSupplies = lists.some(l => l.name === 'Supplies');
+
+            if (!hasCleaning) {
+                const opt = document.createElement('option');
+                opt.value = 'Cleaning';
+                opt.textContent = 'Cleaning (Standard List)';
+                newTabSelect.appendChild(opt);
+            }
+            if (!hasSupplies) {
+                const opt = document.createElement('option');
+                opt.value = 'Supplies';
+                opt.textContent = 'Supplies (Standard List)';
+                newTabSelect.appendChild(opt);
+            }
+
+            // Always provide a custom option
+            const customOpt = document.createElement('option');
+            customOpt.value = 'custom';
+            customOpt.textContent = 'Custom List...';
+            newTabSelect.appendChild(customOpt);
+
+            // Trigger change handler to show/hide text input correctly
+            handleNewTabSelectChange();
+
             newTabModal.classList.remove('hidden');
-            setTimeout(() => newTabInput.focus(), 100);
         }
-        function closeNewTabModal() { newTabModal.classList.add('hidden'); }
+
+        function handleNewTabSelectChange() {
+            if (newTabSelect.value === 'custom') {
+                newTabInput.classList.remove('hidden');
+                newTabInput.value = '';
+                setTimeout(() => newTabInput.focus(), 100);
+            } else {
+                newTabInput.classList.add('hidden');
+            }
+        }
+
+        function closeNewTabModal() { 
+            newTabModal.classList.add('hidden'); 
+        }
+
         function createNewTab() {
-            const name = newTabInput.value.trim();
-            if (name === '') return;
-            const newList = { id: nextListId++, name: name, tasks: [], nextTaskId: 1 };
+            let name = '';
+            let initialTasks = [];
+
+            if (newTabSelect.value === 'custom') {
+                name = newTabInput.value.trim();
+                if (name === '') return;
+            } else {
+                name = newTabSelect.value;
+                if (name === 'Cleaning') {
+                    initialTasks = defaultTasks.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                } else if (name === 'Supplies') {
+                    initialTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                }
+            }
+
+            const nextTId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
+            const newList = { id: nextListId++, name: name, tasks: initialTasks, nextTaskId: nextTId };
+            
             lists.push(newList);
             activeListId = newList.id;
             saveData();
@@ -405,6 +469,7 @@
         
         document.getElementById('cancel-tab-btn').addEventListener('click', closeNewTabModal);
         document.getElementById('save-tab-btn').addEventListener('click', createNewTab);
+        newTabSelect.addEventListener('change', handleNewTabSelectChange);
         newTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') createNewTab(); });
 
         document.getElementById('cancel-edit-tab-btn').addEventListener('click', closeEditTabModal);
