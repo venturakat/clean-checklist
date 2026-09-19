@@ -72,6 +72,20 @@
             <!-- Tabs injected via JS -->
         </div>
 
+        <!-- Timer Bar (Only visible for timed lists) -->
+        <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-4 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10">
+            <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[var(--destructive-text-color)] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span id="timer-display" class="text-xl font-mono font-bold tracking-wider">03:30:00</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button id="timer-toggle-btn" class="bg-[var(--button-color)] text-[var(--button-text-color)] px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm">Start</button>
+                <button id="timer-stop-btn" class="bg-[var(--hint-color)] bg-opacity-20 text-[var(--text-color)] px-3 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform">Reset</button>
+            </div>
+        </div>
+
         <!-- Input Area -->
         <div class="flex gap-2 w-full shrink-0">
             <input 
@@ -80,9 +94,18 @@
                 placeholder="Add a new task..." 
                 class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
+            <input 
+                type="number" 
+                id="task-time-input" 
+                placeholder="Mins" 
+                min="1" 
+                max="300"
+                class="w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium"
+                title="Approximate time in minutes"
+            >
             <button 
                 id="add-btn" 
-                class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-5 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center"
+                class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-4 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -153,27 +176,84 @@
     </div>
 
     <script>
-        const defaultTasks = [
-            "Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces", 
-            "Kitchen sink", "Window boards", "Table", "Mirrors", "Lamps", 
-            "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms", 
-            "Baseboards", "Toilet", "Litterboxes", "Shower", "Vanity area", 
-            "Bathroom sink", "Vacuuming", "Floors", "Wash the towels & rugs", 
-            "Wash the bedsheets", "Trash"
-        ];
+        // Preset tasks with realistic minute estimates summing up to ~3.5 hours (210 mins) for Cleaning
+        const defaultCleaningTasks = [
+            { text: "Vacuuming the floors", time: 15 },
+            { text: "Dusting the kitchen", time: 10 },
+            { text: "Dishes", time: 10 },
+            { text: "Kitchen surfaces", time: 10 },
+            { text: "Kitchen sink", time: 5 },
+            { text: "Window boards", time: 10 },
+            { text: "Table", time: 5 },
+            { text: "Mirrors", time: 5 },
+            { text: "Lamps", time: 5 },
+            { text: "Change the bedsheets", time: 10 },
+            { text: "Sofa", time: 5 },
+            { text: "Ironing", time: 20 },
+            { text: "Dusting the rooms", time: 15 },
+            { text: "Baseboards", time: 10 },
+            { text: "Toilet", time: 10 },
+            { text: "Litterboxes", time: 5 },
+            { text: "Shower", time: 15 },
+            { text: "Vanity area", time: 5 },
+            { text: "Bathroom sink", time: 5 },
+            { text: "Vacuuming", time: 5 },
+            { text: "Floors", time: 10 },
+            { text: "Wash the towels & rugs", time: 10 },
+            { text: "Wash the bedsheets", time: 5 },
+            { text: "Trash", time: 5 }
+        ]; // Total = 210 minutes (3.5 hours)
         
-        const defaultSupplies = ["Gloves", "Sponges", "Toilet paper", "Domestos", "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"];
+        const defaultSupplies = [
+            { text: "Gloves", time: 0 },
+            { text: "Sponges", time: 0 },
+            { text: "Toilet paper", time: 0 },
+            { text: "Domestos", time: 0 },
+            { text: "Cilit", time: 0 },
+            { text: "Barkeeper's friend", time: 0 },
+            { text: "Pronto spray", time: 0 },
+            { text: "Floor soap", time: 0 }
+        ];
 
         const defaultDeepClean = [
-            "Vacuuming the floors", "Washing the curtains", "Washing the cat bed", "Washing decorative textile",
-            "Dusting the kitchen", "Dishes", "Wine glasses", "Kitchen cabinets",
-            "Under the sink cabinets", "Fridge", "Airfryer", "Toaster",
-            "Coffemaker area", "Kitchen surfaces", "Kitchen sink", "Window boards",
-            "Table", "Books", "Flowers", "Mirrors", "Lamps",
-            "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms",
-            "Baseboards", "Baseboards behind the furniture", "Toilet", "Litterboxes",
-            "Washing machine", "Shower", "Vanity area", "Bathroom sink",
-            "Vacuuming", "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"
+            { text: "Vacuuming the floors", time: 15 },
+            { text: "Washing the curtains", time: 20 },
+            { text: "Washing the cat bed", time: 15 },
+            { text: "Washing decorative textile", time: 15 },
+            { text: "Dusting the kitchen", time: 10 },
+            { text: "Dishes", time: 10 },
+            { text: "Wine glasses", time: 10 },
+            { text: "Kitchen cabinets", time: 20 },
+            { text: "Under the sink cabinets", time: 15 },
+            { text: "Fridge", time: 30 },
+            { text: "Airfryer", time: 15 },
+            { text: "Toaster", time: 10 },
+            { text: "Coffemaker area", time: 10 },
+            { text: "Kitchen surfaces", time: 10 },
+            { text: "Kitchen sink", time: 5 },
+            { text: "Window boards", time: 10 },
+            { text: "Table", time: 5 },
+            { text: "Books", time: 15 },
+            { text: "Flowers", time: 10 },
+            { text: "Mirrors", time: 5 },
+            { text: "Lamps", time: 5 },
+            { text: "Change the bedsheets", time: 10 },
+            { text: "Sofa", time: 10 },
+            { text: "Ironing", time: 20 },
+            { text: "Dusting the rooms", time: 15 },
+            { text: "Baseboards", time: 15 },
+            { text: "Baseboards behind the furniture", time: 20 },
+            { text: "Toilet", time: 10 },
+            { text: "Litterboxes", time: 5 },
+            { text: "Washing machine", time: 10 },
+            { text: "Shower", time: 15 },
+            { text: "Vanity area", time: 5 },
+            { text: "Bathroom sink", time: 5 },
+            { text: "Vacuuming", time: 10 },
+            { text: "Floors", time: 15 },
+            { text: "Wash the towels & rugs", time: 10 },
+            { text: "Wash the bedsheets", time: 5 },
+            { text: "Trash", time: 5 }
         ];
 
         let lists = [];
@@ -181,6 +261,11 @@
         let nextListId = 4;
         let sortableTasksInstance = null;
         let sortableTabsInstance = null;
+
+        // Timer State
+        let timerSecondsRemaining = 0;
+        let timerInterval = null;
+        let isTimerRunning = false;
 
         // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
@@ -190,25 +275,14 @@
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
-            const oldSavedTasks = localStorage.getItem('cleanChecklistTasks');
-            let initialTasks = [];
-            let initialNextId = 1;
-            
-            if (oldSavedTasks) {
-                initialTasks = JSON.parse(oldSavedTasks);
-                initialNextId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
-            } else {
-                initialTasks = defaultTasks.map((text, index) => ({ id: index + 1, text: text, completed: false }));
-                initialNextId = defaultTasks.length + 1;
-            }
-
-            const suppliesTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
-            const deepCleanTasks = defaultDeepClean.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+            const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const suppliesTasks = defaultSupplies.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const deepCleanTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
 
             lists = [
-                { id: 1, name: 'Cleaning', tasks: initialTasks, nextTaskId: initialNextId },
-                { id: 2, name: 'Supplies', tasks: suppliesTasks, nextTaskId: defaultSupplies.length + 1 },
-                { id: 3, name: 'Deep Clean', tasks: deepCleanTasks, nextTaskId: defaultDeepClean.length + 1 }
+                { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
+                { id: 2, name: 'Supplies', type: 'standard', tasks: suppliesTasks, nextTaskId: suppliesTasks.length + 1 },
+                { id: 3, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 }
             ];
             activeListId = 1;
             saveData();
@@ -219,11 +293,18 @@
         }
 
         const taskInput = document.getElementById('task-input');
+        const taskTimeInput = document.getElementById('task-time-input');
         const addBtn = document.getElementById('add-btn');
         const taskList = document.getElementById('task-list');
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
         
+        // Timer Elements
+        const timerContainer = document.getElementById('timer-container');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerToggleBtn = document.getElementById('timer-toggle-btn');
+        const timerStopBtn = document.getElementById('timer-stop-btn');
+
         // Modals
         const newTabModal = document.getElementById('new-tab-modal');
         const newTabSelect = document.getElementById('new-tab-select');
@@ -234,6 +315,72 @@
         const deleteTabBtn = document.getElementById('delete-tab-btn');
 
         function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
+
+        function calculateTotalSeconds(list) {
+            if (!list || list.type !== 'timed') return 0;
+            const totalMins = list.tasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
+            return totalMins * 60;
+        }
+
+        function formatTime(totalSeconds) {
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function initTimerForActiveList() {
+            stopTimer();
+            const activeList = getActiveList();
+            if (activeList.type === 'timed') {
+                timerContainer.classList.remove('hidden');
+                timerContainer.classList.add('flex');
+                timerSecondsRemaining = calculateTotalSeconds(activeList);
+                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            } else {
+                timerContainer.classList.remove('flex');
+                timerContainer.classList.add('hidden');
+            }
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (timerSecondsRemaining <= 0) return;
+            isTimerRunning = true;
+            timerToggleBtn.textContent = 'Pause';
+            timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm';
+            
+            timerInterval = setInterval(() => {
+                if (timerSecondsRemaining > 0) {
+                    timerSecondsRemaining--;
+                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                } else {
+                    stopTimer();
+                    alert('Time is up! Great job cleaning.');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            timerToggleBtn.textContent = 'Start';
+            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-3.5 py-1.5 rounded-xl font-semibold text-sm active:scale-95 transition-transform shadow-sm';
+        }
+
+        function stopTimer() {
+            pauseTimer();
+            const activeList = getActiveList();
+            timerSecondsRemaining = calculateTotalSeconds(activeList);
+            timerDisplay.textContent = formatTime(timerSecondsRemaining);
+        }
 
         function renderTabs() {
             tabBar.innerHTML = '';
@@ -261,6 +408,7 @@
                         saveData();
                         renderTabs();
                         renderTasks();
+                        initTimerForActiveList();
                     }
                 };
                 tabBar.appendChild(btn);
@@ -294,15 +442,15 @@
                     li.dataset.id = task.id;
                     
                     const leftDiv = document.createElement('div');
-                    leftDiv.className = 'flex items-center gap-2 flex-1';
+                    leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
                     // Drag Handle
                     const dragHandle = document.createElement('div');
-                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none';
+                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
                     dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
                     
                     const contentDiv = document.createElement('div');
-                    contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer';
+                    contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
                     contentDiv.onclick = () => toggleTask(task.id);
 
                     const checkbox = document.createElement('div');
@@ -312,7 +460,7 @@
                     checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
 
                     const span = document.createElement('span');
-                    span.className = `text-[var(--text-color)] text-base select-none transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
+                    span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
                     span.innerText = task.text;
 
                     contentDiv.appendChild(checkbox);
@@ -320,13 +468,26 @@
                     leftDiv.appendChild(dragHandle);
                     leftDiv.appendChild(contentDiv);
 
+                    const rightSideDiv = document.createElement('div');
+                    rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
+
+                    // Approximate Time (Red Text) if timed list and time exists
+                    if (activeList.type === 'timed' && task.time > 0) {
+                        const timeSpan = document.createElement('span');
+                        timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold';
+                        timeSpan.innerText = `${task.time}m`;
+                        rightSideDiv.appendChild(timeSpan);
+                    }
+
                     const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg shrink-0';
+                    deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
                     deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
                     deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                    
+                    rightSideDiv.appendChild(deleteBtn);
 
                     li.appendChild(leftDiv);
-                    li.appendChild(deleteBtn);
+                    li.appendChild(rightSideDiv);
                     taskList.appendChild(li);
                 });
             }
@@ -385,12 +546,27 @@
         function addTask() {
             const text = taskInput.value.trim();
             if (text === '') return;
+            
             const activeList = getActiveList();
             if (!activeList) return;
-            activeList.tasks.push({ id: activeList.nextTaskId++, text: text, completed: false });
+
+            let taskTime = 0;
+            if (activeList.type === 'timed') {
+                taskTime = Number(taskTimeInput.value) || 5; // default 5 mins if left blank
+            }
+
+            activeList.tasks.push({ 
+                id: activeList.nextTaskId++, 
+                text: text, 
+                time: taskTime, 
+                completed: false 
+            });
+
             taskInput.value = ''; 
+            taskTimeInput.value = '';
             saveData(); 
             renderTasks();
+            initTimerForActiveList();
             taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
         }
 
@@ -411,6 +587,7 @@
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
             saveData(); 
             renderTasks();
+            initTimerForActiveList();
         }
 
         // New Tab Logic with Preset Options
@@ -466,23 +643,28 @@
         function createNewTab() {
             let name = '';
             let initialTasks = [];
+            let listType = 'timed';
 
             if (newTabSelect.value === 'custom') {
                 name = newTabInput.value.trim();
                 if (name === '') return;
+                listType = 'timed'; // Default new custom lists to timed
             } else {
                 name = newTabSelect.value;
                 if (name === 'Cleaning') {
-                    initialTasks = defaultTasks.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                    initialTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
                 } else if (name === 'Supplies') {
-                    initialTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                    initialTasks = defaultSupplies.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'standard';
                 } else if (name === 'Deep Clean') {
-                    initialTasks = defaultDeepClean.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+                    initialTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
                 }
             }
 
             const nextTId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
-            const newList = { id: nextListId++, name: name, tasks: initialTasks, nextTaskId: nextTId };
+            const newList = { id: nextListId++, name: name, type: listType, tasks: initialTasks, nextTaskId: nextTId };
             
             lists.push(newList);
             activeListId = newList.id;
@@ -490,6 +672,7 @@
             closeNewTabModal();
             renderTabs();
             renderTasks();
+            initTimerForActiveList();
         }
 
         // Edit Tab Logic
@@ -519,12 +702,17 @@
             closeEditTabModal();
             renderTabs();
             renderTasks();
+            initTimerForActiveList();
         }
 
         // Event Listeners
         addBtn.addEventListener('click', addTask);
         taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
+        taskTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         
+        timerToggleBtn.addEventListener('click', toggleTimer);
+        timerStopBtn.addEventListener('click', stopTimer);
+
         document.getElementById('cancel-tab-btn').addEventListener('click', closeNewTabModal);
         document.getElementById('save-tab-btn').addEventListener('click', createNewTab);
         newTabSelect.addEventListener('change', handleNewTabSelectChange);
@@ -539,6 +727,7 @@
         renderTabs();
         renderTasks();
         initSortableTasks();
+        initTimerForActiveList();
 
     </script>
 </body>
