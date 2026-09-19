@@ -176,7 +176,6 @@
     </div>
 
     <script>
-        // Preset tasks with realistic minute estimates summing up to ~3.5 hours (210 mins) for Cleaning
         const defaultCleaningTasks = [
             { text: "Vacuuming the floors", time: 15 },
             { text: "Dusting the kitchen", time: 10 },
@@ -202,7 +201,7 @@
             { text: "Wash the towels & rugs", time: 10 },
             { text: "Wash the bedsheets", time: 5 },
             { text: "Trash", time: 5 }
-        ]; // Total = 210 minutes (3.5 hours)
+        ];
         
         const defaultSupplies = [
             { text: "Gloves", time: 0 },
@@ -272,6 +271,16 @@
         if (savedMultiData) {
             const parsed = JSON.parse(savedMultiData);
             lists = parsed.lists || [];
+            
+            lists.forEach(l => {
+                if (!l.type) {
+                    l.type = l.name === 'Supplies' ? 'standard' : 'timed';
+                }
+                l.tasks.forEach(t => {
+                    if (t.time === undefined) t.time = l.type === 'timed' ? 5 : 0;
+                });
+            });
+
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
@@ -329,17 +338,19 @@
             return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
-        function initTimerForActiveList() {
-            stopTimer();
+        function updateInputAreaState() {
             const activeList = getActiveList();
             if (activeList.type === 'timed') {
+                taskTimeInput.classList.remove('hidden');
                 timerContainer.classList.remove('hidden');
                 timerContainer.classList.add('flex');
                 timerSecondsRemaining = calculateTotalSeconds(activeList);
                 timerDisplay.textContent = formatTime(timerSecondsRemaining);
             } else {
+                taskTimeInput.classList.add('hidden');
                 timerContainer.classList.remove('flex');
                 timerContainer.classList.add('hidden');
+                stopTimer();
             }
         }
 
@@ -378,8 +389,10 @@
         function stopTimer() {
             pauseTimer();
             const activeList = getActiveList();
-            timerSecondsRemaining = calculateTotalSeconds(activeList);
-            timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            if (activeList.type === 'timed') {
+                timerSecondsRemaining = calculateTotalSeconds(activeList);
+                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            }
         }
 
         function renderTabs() {
@@ -408,7 +421,7 @@
                         saveData();
                         renderTabs();
                         renderTasks();
-                        initTimerForActiveList();
+                        updateInputAreaState();
                     }
                 };
                 tabBar.appendChild(btn);
@@ -552,7 +565,7 @@
 
             let taskTime = 0;
             if (activeList.type === 'timed') {
-                taskTime = Number(taskTimeInput.value) || 5; // default 5 mins if left blank
+                taskTime = Number(taskTimeInput.value) || 5; 
             }
 
             activeList.tasks.push({ 
@@ -566,7 +579,7 @@
             taskTimeInput.value = '';
             saveData(); 
             renderTasks();
-            initTimerForActiveList();
+            updateInputAreaState();
             taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
         }
 
@@ -587,10 +600,10 @@
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
             saveData(); 
             renderTasks();
-            initTimerForActiveList();
+            updateInputAreaState();
         }
 
-        // New Tab Logic with Preset Options
+        // New Tab Logic with Separate Custom Options
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
@@ -617,17 +630,23 @@
                 newTabSelect.appendChild(opt);
             }
 
-            const customOpt = document.createElement('option');
-            customOpt.value = 'custom';
-            customOpt.textContent = 'Custom List...';
-            newTabSelect.appendChild(customOpt);
+            const customSimpleOpt = document.createElement('option');
+            customSimpleOpt.value = 'custom_simple';
+            customSimpleOpt.textContent = 'Custom Simple List';
+            newTabSelect.appendChild(customSimpleOpt);
+
+            const customTimedOpt = document.createElement('option');
+            customTimedOpt.value = 'custom_timed';
+            customTimedOpt.textContent = 'Custom Timed List';
+            newTabSelect.appendChild(customTimedOpt);
 
             handleNewTabSelectChange();
             newTabModal.classList.remove('hidden');
         }
 
         function handleNewTabSelectChange() {
-            if (newTabSelect.value === 'custom') {
+            const val = newTabSelect.value;
+            if (val === 'custom_simple' || val === 'custom_timed') {
                 newTabInput.classList.remove('hidden');
                 newTabInput.value = '';
                 setTimeout(() => newTabInput.focus(), 100);
@@ -644,13 +663,14 @@
             let name = '';
             let initialTasks = [];
             let listType = 'timed';
+            const val = newTabSelect.value;
 
-            if (newTabSelect.value === 'custom') {
+            if (val === 'custom_simple' || val === 'custom_timed') {
                 name = newTabInput.value.trim();
                 if (name === '') return;
-                listType = 'timed'; // Default new custom lists to timed
+                listType = (val === 'custom_timed') ? 'timed' : 'standard';
             } else {
-                name = newTabSelect.value;
+                name = val;
                 if (name === 'Cleaning') {
                     initialTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
                     listType = 'timed';
@@ -672,7 +692,7 @@
             closeNewTabModal();
             renderTabs();
             renderTasks();
-            initTimerForActiveList();
+            updateInputAreaState();
         }
 
         // Edit Tab Logic
@@ -702,7 +722,7 @@
             closeEditTabModal();
             renderTabs();
             renderTasks();
-            initTimerForActiveList();
+            updateInputAreaState();
         }
 
         // Event Listeners
@@ -727,7 +747,7 @@
         renderTabs();
         renderTasks();
         initSortableTasks();
-        initTimerForActiveList();
+        updateInputAreaState();
 
     </script>
 </body>
