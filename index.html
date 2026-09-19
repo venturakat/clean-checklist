@@ -367,7 +367,9 @@
 
         function calculateTotalSeconds(list) {
             if (!list || list.type !== 'timed') return 0;
-            const totalMins = list.tasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
+            // Only sum up time for uncompleted tasks so remaining duration scales dynamically
+            const activeUncompletedTasks = list.tasks.filter(t => !t.completed);
+            const totalMins = activeUncompletedTasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
             return totalMins * 60;
         }
 
@@ -444,13 +446,17 @@
         // Calculates and applies dynamic red-to-green gradient shading on task rows
         function updateTaskVisualGradients() {
             const activeList = getActiveList();
-            if (!activeList || activeList.type !== 'timed' || timerTotalSeconds <= 0) return;
+            if (!activeList || activeList.type !== 'timed') return;
 
-            // Elapsed time ratio from 0 to 1
-            const elapsedRatio = Math.max(0, Math.min(1, (timerTotalSeconds - timerSecondsRemaining) / timerTotalSeconds));
-            
-            // Cumulative time elapsed marker as we iterate down tasks from top to bottom
-            let accumulatedTime = 0;
+            const uncompletedTasks = activeList.tasks.filter(t => !t.completed);
+            const activeTotalMins = uncompletedTasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
+            const activeTotalSecs = activeTotalMins * 60;
+
+            if (activeTotalSecs <= 0) return;
+
+            // How much time has passed relative to the currently active uncompleted pool
+            const elapsedSecs = Math.max(0, activeTotalSecs - timerSecondsRemaining);
+            let accumulatedSecs = 0;
             const liElements = taskList.querySelectorAll('li');
 
             activeList.tasks.forEach((task, index) => {
@@ -458,24 +464,23 @@
                 if (!li) return;
 
                 if (task.completed) {
-                    // Green when checked off
-                    li.style.background = 'rgba(34, 197, 94, 0.15)'; // soft green tint
+                    // Soft Green when checked off
+                    li.style.background = 'rgba(34, 197, 94, 0.18)';
                     li.style.borderColor = 'rgba(34, 197, 94, 0.4)';
                     return;
                 }
 
-                const taskDuration = Number(task.time) || 0;
-                const taskStartRatio = accumulatedTime / (timerTotalSeconds / 60); // convert total back to minutes comparison
-                accumulatedTime += taskDuration;
-                const taskEndRatio = accumulatedTime / (timerTotalSeconds / 60);
+                const taskDurationSecs = (Number(task.time) || 0) * 60;
+                const taskStartSecs = accumulatedSecs;
+                accumulatedSecs += taskDurationSecs;
+                const taskEndSecs = accumulatedSecs;
 
-                if (isTimerRunning && elapsedRatio >= taskStartRatio) {
-                    // Calculate how much of this specific task's duration has passed (0 to 1)
-                    const taskProgress = Math.min(1, Math.max(0, (elapsedRatio - taskStartRatio) / Math.max(0.0001, (taskEndRatio - taskStartRatio))));
+                if (isTimerRunning && elapsedSecs >= taskStartSecs) {
+                    const taskProgress = Math.min(1, Math.max(0, (elapsedSecs - taskStartSecs) / Math.max(1, (taskEndSecs - taskStartSecs))));
                     
                     if (taskProgress > 0) {
-                        // Gradual red fill from left to right using background-image linear-gradient
-                        const redAlpha = 0.18 * taskProgress;
+                        // Pronounced rich red gradient fill from left to right (opacity up to 0.35)
+                        const redAlpha = 0.35 * taskProgress;
                         li.style.background = `linear-gradient(to right, rgba(239, 68, 68, ${redAlpha}) ${taskProgress * 100}%, var(--secondary-bg-color) ${taskProgress * 100}%)`;
                     } else {
                         li.style.background = 'var(--secondary-bg-color)';
@@ -688,6 +693,16 @@
             const task = activeList.tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
+                
+                // Recalculate remaining pool duration dynamically so next uncompleted task restarts its pacing fresh
+                if (activeList.type === 'timed') {
+                    timerTotalSeconds = calculateTotalSeconds(activeList);
+                    if (timerSecondsRemaining > timerTotalSeconds) {
+                        timerSecondsRemaining = timerTotalSeconds;
+                    }
+                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                }
+
                 saveData(); 
                 renderTasks();
             }
@@ -870,7 +885,7 @@
         newTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') createNewTab(); });
 
         document.getElementById('cancel-edit-tab-btn').addEventListener('click', closeEditTabModal);
-        document.getElementById('save-edit-tab-btn').addEventListener('click', saveEditTab);
+        document.getElementById('save-edit-tab-btn', saveEditTab);
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
