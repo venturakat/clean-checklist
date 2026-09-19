@@ -4,14 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Clean Checklist</title>
     
     <!-- PWA / Home Screen Support -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
-    
-    <!-- Telegram Web App Script -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,30 +19,30 @@
 
     <style>
         :root {
-            --tg-theme-bg-color: #ffffff;
-            --tg-theme-text-color: #000000;
-            --tg-theme-hint-color: #999999;
-            --tg-theme-button-color: #3390ec;
-            --tg-theme-button-text-color: #ffffff;
-            --tg-theme-secondary-bg-color: #f4f4f5;
-            --tg-theme-destructive-text-color: #e53935;
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --hint-color: #999999;
+            --button-color: #3390ec;
+            --button-text-color: #ffffff;
+            --secondary-bg-color: #f4f4f5;
+            --destructive-text-color: #e53935;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --tg-theme-bg-color: #212121;
-                --tg-theme-text-color: #ffffff;
-                --tg-theme-hint-color: #aaaaaa;
-                --tg-theme-button-color: #8774e1;
-                --tg-theme-button-text-color: #ffffff;
-                --tg-theme-secondary-bg-color: #0f0f0f;
-                --tg-theme-destructive-text-color: #ff595a;
+                --bg-color: #212121;
+                --text-color: #ffffff;
+                --hint-color: #aaaaaa;
+                --button-color: #8774e1;
+                --button-text-color: #ffffff;
+                --secondary-bg-color: #0f0f0f;
+                --destructive-text-color: #ff595a;
             }
         }
 
         body {
-            background-color: var(--tg-theme-bg-color);
-            color: var(--tg-theme-text-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
@@ -52,11 +50,10 @@
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background-color: var(--tg-theme-hint-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background-color: var(--hint-color); border-radius: 10px; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Drag handle active state */
         .sortable-ghost { opacity: 0.4; }
     </style>
 </head>
@@ -67,12 +64,12 @@
         <!-- Header -->
         <header class="py-2 shrink-0">
             <h1 class="text-2xl font-bold">Clean Checklist</h1>
-            <p class="text-[var(--tg-theme-hint-color)] text-sm mt-1" id="greeting">Stay productive today.</p>
+            <p class="text-[var(--hint-color)] text-sm mt-1">Stay productive today.</p>
         </header>
 
         <!-- Tabs Area -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 scrollbar-hide" id="tab-bar">
-            <!-- Tabs will be injected here via JavaScript -->
+            <!-- Tabs injected via JS -->
         </div>
 
         <!-- Input Area -->
@@ -81,11 +78,11 @@
                 type="text" 
                 id="task-input" 
                 placeholder="Add a new task..." 
-                class="flex-1 bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+                class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <button 
                 id="add-btn" 
-                class="bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl px-5 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center"
+                class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-5 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -96,67 +93,58 @@
         <!-- Checklist Area -->
         <div class="flex-1 overflow-y-auto mt-2">
             <ul id="task-list" class="flex flex-col gap-2 pb-20">
-                <!-- Tasks will be injected here via JavaScript -->
+                <!-- Tasks injected via JS -->
             </ul>
         </div>
         
         <!-- Empty State Container -->
         <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--tg-theme-hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <p class="text-[var(--tg-theme-hint-color)]">Your checklist is empty.<br>Add some tasks to get started!</p>
+            <p class="text-[var(--hint-color)]">Your checklist is empty.<br>Add some tasks to get started!</p>
         </div>
 
     </div>
 
     <!-- New Tab Modal -->
     <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-[var(--tg-theme-bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--tg-theme-secondary-bg-color)]">
+        <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New List</h2>
             <input 
                 type="text" 
                 id="new-tab-input" 
                 placeholder="E.g., Groceries, Packing..." 
-                class="w-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <div class="flex gap-2 justify-end mt-2">
-                <button id="cancel-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors">Cancel</button>
-                <button id="save-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform">Create</button>
+                <button id="cancel-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--hint-color)] hover:bg-[var(--secondary-bg-color)] transition-colors">Cancel</button>
+                <button id="save-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--button-color)] text-[var(--button-text-color)] shadow-sm active:scale-95 transition-transform">Create</button>
             </div>
         </div>
     </div>
 
     <!-- Manage Tab Modal (Rename / Delete) -->
     <div id="edit-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
-        <div class="bg-[var(--tg-theme-bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--tg-theme-secondary-bg-color)]">
+        <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Manage List</h2>
             <input 
                 type="text" 
                 id="edit-tab-input" 
                 placeholder="List name..." 
-                class="w-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <div class="flex gap-2 justify-between mt-2">
-                <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-destructive-text-color)] bg-[var(--tg-theme-destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
+                <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--destructive-text-color)] bg-[var(--destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
                 <div class="flex gap-2">
-                    <button id="cancel-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors">Cancel</button>
-                    <button id="save-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
+                    <button id="cancel-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--hint-color)] hover:bg-[var(--secondary-bg-color)] transition-colors">Cancel</button>
+                    <button id="save-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--button-color)] text-[var(--button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Initialize Telegram Web App
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        tg.ready();
-
-        const user = tg.initDataUnsafe?.user;
-        const firstName = (user && user.first_name) ? user.first_name : 'there';
-        document.getElementById('greeting').innerText = `Stay productive, ${firstName}!`;
-
         const defaultTasks = ["Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces", "Window boards", "Table", "Mirrors", "Lamps", "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms", "Baseboards", "Toilet", "Litterboxes", "Shower", "Vanity area", "Bathroom sink", "Vacuuming", "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"];
         const defaultSupplies = ["Gloves", "Sponges", "Toilet paper", "Domestos", "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"];
 
@@ -223,8 +211,8 @@
                 const btn = document.createElement('button');
                 btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm flex items-center gap-1.5 ${
                     isActive 
-                        ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' 
-                        : 'bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] opacity-80 hover:opacity-100 border border-[var(--tg-theme-hint-color)] border-opacity-20'
+                        ? 'bg-[var(--button-color)] text-[var(--button-text-color)]' 
+                        : 'bg-[var(--secondary-bg-color)] text-[var(--text-color)] opacity-80 hover:opacity-100 border border-[var(--hint-color)] border-opacity-20'
                 }`;
                 
                 btn.innerHTML = isActive 
@@ -237,7 +225,6 @@
                     } else {
                         activeListId = list.id;
                         saveData();
-                        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                         renderTabs();
                         renderTasks();
                     }
@@ -246,7 +233,7 @@
             });
 
             const addTabBtn = document.createElement('button');
-            addTabBtn.className = 'flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--tg-theme-hint-color)] border-opacity-20';
+            addTabBtn.className = 'flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--secondary-bg-color)] text-[var(--button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--hint-color)] border-opacity-20';
             addTabBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
@@ -267,7 +254,7 @@
             if (activeList) {
                 activeList.tasks.forEach(task => {
                     const li = document.createElement('li');
-                    li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-60' : ''}`;
+                    li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-60' : ''}`;
                     li.dataset.id = task.id;
                     
                     const leftDiv = document.createElement('div');
@@ -275,7 +262,7 @@
 
                     // Drag Handle
                     const dragHandle = document.createElement('div');
-                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--tg-theme-hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none';
+                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none';
                     dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
                     
                     const contentDiv = document.createElement('div');
@@ -284,12 +271,12 @@
 
                     const checkbox = document.createElement('div');
                     checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                        task.completed ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' : 'border-[var(--tg-theme-hint-color)] text-transparent'
+                        task.completed ? 'border-[var(--button-color)] bg-[var(--button-color)] text-[var(--button-text-color)]' : 'border-[var(--hint-color)] text-transparent'
                     }`;
                     checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
 
                     const span = document.createElement('span');
-                    span.className = `text-[var(--tg-theme-text-color)] text-base select-none transition-all duration-200 ${task.completed ? 'line-through text-[var(--tg-theme-hint-color)]' : ''}`;
+                    span.className = `text-[var(--text-color)] text-base select-none transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
                     span.innerText = task.text;
 
                     contentDiv.appendChild(checkbox);
@@ -298,7 +285,7 @@
                     leftDiv.appendChild(contentDiv);
 
                     const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-destructive-text-color)] active:scale-90 transition-all rounded-lg shrink-0';
+                    deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg shrink-0';
                     deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
                     deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
 
@@ -327,7 +314,6 @@
                         const [movedTask] = activeList.tasks.splice(oldIndex, 1);
                         activeList.tasks.splice(newIndex, 0, movedTask);
                         saveData();
-                        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
                         renderTasks();
                     }
                 }
@@ -342,7 +328,6 @@
             activeList.tasks.push({ id: activeList.nextTaskId++, text: text, completed: false });
             taskInput.value = ''; 
             saveData(); 
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             renderTasks();
             taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
         }
@@ -354,10 +339,6 @@
             if (task) {
                 task.completed = !task.completed;
                 saveData(); 
-                if (tg.HapticFeedback) {
-                    if (task.completed) tg.HapticFeedback.notificationOccurred('success');
-                    else tg.HapticFeedback.impactOccurred('light');
-                }
                 renderTasks();
             }
         }
@@ -367,7 +348,6 @@
             if (!activeList) return;
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
             saveData(); 
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             renderTasks();
         }
 
@@ -385,7 +365,6 @@
             lists.push(newList);
             activeListId = newList.id;
             saveData();
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             closeNewTabModal();
             renderTabs();
             renderTasks();
@@ -406,7 +385,6 @@
             const activeList = getActiveList();
             activeList.name = newName;
             saveData();
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
             closeEditTabModal();
             renderTabs();
         }
@@ -415,7 +393,6 @@
             lists = lists.filter(l => l.id !== activeListId);
             activeListId = lists[0].id;
             saveData();
-            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
             closeEditTabModal();
             renderTabs();
             renderTasks();
