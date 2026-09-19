@@ -178,7 +178,7 @@
 
         let lists = [];
         let activeListId = 1;
-        let nextListId = 3;
+        let nextListId = 4;
         let sortableTasksInstance = null;
         let sortableTabsInstance = null;
 
@@ -188,7 +188,7 @@
             const parsed = JSON.parse(savedMultiData);
             lists = parsed.lists || [];
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
-            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 3;
+            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
             const oldSavedTasks = localStorage.getItem('cleanChecklistTasks');
             let initialTasks = [];
@@ -203,10 +203,12 @@
             }
 
             const suppliesTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
+            const deepCleanTasks = defaultDeepClean.map((text, index) => ({ id: index + 1, text: text, completed: false }));
 
             lists = [
                 { id: 1, name: 'Cleaning', tasks: initialTasks, nextTaskId: initialNextId },
-                { id: 2, name: 'Supplies', tasks: suppliesTasks, nextTaskId: defaultSupplies.length + 1 }
+                { id: 2, name: 'Supplies', tasks: suppliesTasks, nextTaskId: defaultSupplies.length + 1 },
+                { id: 3, name: 'Deep Clean', tasks: deepCleanTasks, nextTaskId: defaultDeepClean.length + 1 }
             ];
             activeListId = 1;
             saveData();
