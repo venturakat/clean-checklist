@@ -16,11 +16,10 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- SortableJS for mobile-friendly drag and drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
     <style>
-        /* 
-           Fallback variables in case the app is opened outside of Telegram.
-           Telegram will automatically inject its own variables that override these.
-        */
         :root {
             --tg-theme-bg-color: #ffffff;
             --tg-theme-text-color: #000000;
@@ -44,34 +43,21 @@
         }
 
         body {
-            /* Use Telegram's background and text color variables directly on the body */
             background-color: var(--tg-theme-bg-color);
             color: var(--tg-theme-text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
-            /* Prevent overscroll bounce on mobile */
             overscroll-behavior-y: none; 
         }
 
-        /* Custom scrollbar for webkit to match theme */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px; /* Added for horizontal scrollbar */
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--tg-theme-hint-color);
-            border-radius: 10px;
-        }
-
-        /* Hide scrollbar completely for tab navigation */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background-color: var(--tg-theme-hint-color); border-radius: 10px; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Drag handle active state */
+        .sortable-ghost { opacity: 0.4; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4">
@@ -124,7 +110,7 @@
 
     </div>
 
-    <!-- New Tab Modal (Replaces browser prompts for better UI) -->
+    <!-- New Tab Modal -->
     <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--tg-theme-bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--tg-theme-secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New List</h2>
@@ -141,49 +127,52 @@
         </div>
     </div>
 
+    <!-- Manage Tab Modal (Rename / Delete) -->
+    <div id="edit-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-[var(--tg-theme-bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--tg-theme-secondary-bg-color)]">
+            <h2 class="text-xl font-bold">Manage List</h2>
+            <input 
+                type="text" 
+                id="edit-tab-input" 
+                placeholder="List name..." 
+                class="w-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] placeholder-[var(--tg-theme-hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--tg-theme-button-color)] transition-all"
+            >
+            <div class="flex gap-2 justify-between mt-2">
+                <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-destructive-text-color)] bg-[var(--tg-theme-destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
+                <div class="flex gap-2">
+                    <button id="cancel-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--tg-theme-hint-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] transition-colors">Cancel</button>
+                    <button id="save-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize Telegram Web App
         const tg = window.Telegram.WebApp;
-        
-        // Expand the web app to full height
         tg.expand();
-
-        // Notify Telegram that the app is fully loaded and ready to be displayed
         tg.ready();
 
-        // Get user info if available and set greeting with fallback
         const user = tg.initDataUnsafe?.user;
         const firstName = (user && user.first_name) ? user.first_name : 'there';
         document.getElementById('greeting').innerText = `Stay productive, ${firstName}!`;
 
-        const defaultTasks = [
-            "Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces",
-            "Window boards", "Table", "Mirrors", "Lamps", "Change the bedsheets",
-            "Sofa", "Ironing", "Dusting the rooms", "Baseboards", "Toilet",
-            "Litterboxes", "Shower", "Vanity area", "Bathroom sink", "Vacuuming",
-            "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"
-        ];
+        const defaultTasks = ["Vacuuming the floors", "Dusting the kitchen", "Dishes", "Kitchen surfaces", "Window boards", "Table", "Mirrors", "Lamps", "Change the bedsheets", "Sofa", "Ironing", "Dusting the rooms", "Baseboards", "Toilet", "Litterboxes", "Shower", "Vanity area", "Bathroom sink", "Vacuuming", "Floors", "Wash the towels & rugs", "Wash the bedsheets", "Trash"];
+        const defaultSupplies = ["Gloves", "Sponges", "Toilet paper", "Domestos", "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"];
 
-        const defaultSupplies = [
-            "Gloves", "Sponges", "Toilet paper", "Domestos",
-            "Cilit", "Barkeeper's friend", "Pronto spray", "Floor soap"
-        ];
-
-        // State variables
         let lists = [];
         let activeListId = 1;
         let nextListId = 3;
+        let sortableInstance = null;
 
-        // Load multi-list data or handle migration from older single-list version
+        // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
-        
         if (savedMultiData) {
             const parsed = JSON.parse(savedMultiData);
             lists = parsed.lists || [];
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 3;
         } else {
-            // Check for older single list data to migrate securely
             const oldSavedTasks = localStorage.getItem('cleanChecklistTasks');
             let initialTasks = [];
             let initialNextId = 1;
@@ -192,46 +181,22 @@
                 initialTasks = JSON.parse(oldSavedTasks);
                 initialNextId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
             } else {
-                // Completely new user defaults
-                initialTasks = defaultTasks.map((text, index) => ({
-                    id: index + 1,
-                    text: text,
-                    completed: false
-                }));
+                initialTasks = defaultTasks.map((text, index) => ({ id: index + 1, text: text, completed: false }));
                 initialNextId = defaultTasks.length + 1;
             }
 
-            const suppliesTasks = defaultSupplies.map((text, index) => ({
-                id: index + 1,
-                text: text,
-                completed: false
-            }));
+            const suppliesTasks = defaultSupplies.map((text, index) => ({ id: index + 1, text: text, completed: false }));
 
             lists = [
-                {
-                    id: 1,
-                    name: 'Cleaning',
-                    tasks: initialTasks,
-                    nextTaskId: initialNextId
-                },
-                {
-                    id: 2,
-                    name: 'Supplies',
-                    tasks: suppliesTasks,
-                    nextTaskId: defaultSupplies.length + 1
-                }
+                { id: 1, name: 'Cleaning', tasks: initialTasks, nextTaskId: initialNextId },
+                { id: 2, name: 'Supplies', tasks: suppliesTasks, nextTaskId: defaultSupplies.length + 1 }
             ];
-            
             activeListId = 1;
             saveData();
         }
 
-        // Helper to save current multi-list state
         function saveData() {
-            localStorage.setItem('cleanChecklistMultiData', JSON.stringify({
-                lists: lists,
-                activeListId: activeListId
-            }));
+            localStorage.setItem('cleanChecklistMultiData', JSON.stringify({ lists: lists, activeListId: activeListId }));
         }
 
         const taskInput = document.getElementById('task-input');
@@ -240,15 +205,15 @@
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
         
+        // Modals
         const newTabModal = document.getElementById('new-tab-modal');
         const newTabInput = document.getElementById('new-tab-input');
-        const cancelTabBtn = document.getElementById('cancel-tab-btn');
-        const saveTabBtn = document.getElementById('save-tab-btn');
+        
+        const editTabModal = document.getElementById('edit-tab-modal');
+        const editTabInput = document.getElementById('edit-tab-input');
+        const deleteTabBtn = document.getElementById('delete-tab-btn');
 
-        // Get the currently active list object
-        function getActiveList() {
-            return lists.find(l => l.id === activeListId) || lists[0];
-        }
+        function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
 
         function renderTabs() {
             tabBar.innerHTML = '';
@@ -256,30 +221,34 @@
             lists.forEach(list => {
                 const isActive = list.id === activeListId;
                 const btn = document.createElement('button');
-                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm ${
+                btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm flex items-center gap-1.5 ${
                     isActive 
                         ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' 
                         : 'bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] opacity-80 hover:opacity-100 border border-[var(--tg-theme-hint-color)] border-opacity-20'
                 }`;
-                btn.innerText = list.name;
+                
+                // Add a small pencil icon if active to indicate it can be tapped to edit
+                btn.innerHTML = isActive 
+                    ? `<span>${list.name}</span> <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>` 
+                    : list.name;
+                
                 btn.onclick = () => {
-                    activeListId = list.id;
-                    saveData();
-                    if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                    renderTabs();
-                    renderTasks();
+                    if (isActive) {
+                        openEditTabModal();
+                    } else {
+                        activeListId = list.id;
+                        saveData();
+                        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                        renderTabs();
+                        renderTasks();
+                    }
                 };
                 tabBar.appendChild(btn);
             });
 
-            // Add '+' Tab Button
             const addTabBtn = document.createElement('button');
             addTabBtn.className = 'flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--tg-theme-hint-color)] border-opacity-20';
-            addTabBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-            `;
+            addTabBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
         }
@@ -300,41 +269,39 @@
                 activeList.tasks.forEach(task => {
                     const li = document.createElement('li');
                     li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-60' : ''}`;
+                    li.dataset.id = task.id;
                     
                     const leftDiv = document.createElement('div');
-                    leftDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer';
-                    leftDiv.onclick = () => toggleTask(task.id);
+                    leftDiv.className = 'flex items-center gap-2 flex-1';
+
+                    // Drag Handle
+                    const dragHandle = document.createElement('div');
+                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--tg-theme-hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none';
+                    dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer';
+                    contentDiv.onclick = () => toggleTask(task.id);
 
                     const checkbox = document.createElement('div');
-                    checkbox.className = `w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                        task.completed 
-                            ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' 
-                            : 'border-[var(--tg-theme-hint-color)] text-transparent'
+                    checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                        task.completed ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)]' : 'border-[var(--tg-theme-hint-color)] text-transparent'
                     }`;
-                    checkbox.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    `;
+                    checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
 
                     const span = document.createElement('span');
                     span.className = `text-[var(--tg-theme-text-color)] text-base select-none transition-all duration-200 ${task.completed ? 'line-through text-[var(--tg-theme-hint-color)]' : ''}`;
                     span.innerText = task.text;
 
-                    leftDiv.appendChild(checkbox);
-                    leftDiv.appendChild(span);
+                    contentDiv.appendChild(checkbox);
+                    contentDiv.appendChild(span);
+                    leftDiv.appendChild(dragHandle);
+                    leftDiv.appendChild(contentDiv);
 
                     const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-destructive-text-color)] active:scale-90 transition-all rounded-lg';
-                    deleteBtn.onclick = (e) => {
-                        e.stopPropagation(); 
-                        deleteTask(task.id);
-                    };
-                    deleteBtn.innerHTML = `
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    `;
+                    deleteBtn.className = 'p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-destructive-text-color)] active:scale-90 transition-all rounded-lg shrink-0';
+                    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
 
                     li.appendChild(leftDiv);
                     li.appendChild(deleteBtn);
@@ -343,22 +310,39 @@
             }
         }
 
+        function initSortable() {
+            if (sortableInstance) sortableInstance.destroy();
+            sortableInstance = new Sortable(taskList, {
+                handle: '.drag-handle',
+                animation: 200,
+                delay: 100, // Small delay prevents accidental dragging when trying to scroll
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const activeList = getActiveList();
+                    if (!activeList) return;
+                    
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    
+                    if (oldIndex !== newIndex) {
+                        const [movedTask] = activeList.tasks.splice(oldIndex, 1);
+                        activeList.tasks.splice(newIndex, 0, movedTask);
+                        saveData();
+                        if (tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+                        renderTasks(); // Keep DOM perfectly synced with array
+                    }
+                }
+            });
+        }
+
         function addTask() {
             const text = taskInput.value.trim();
             if (text === '') return;
-
             const activeList = getActiveList();
             if (!activeList) return;
-
-            activeList.tasks.push({
-                id: activeList.nextTaskId++,
-                text: text,
-                completed: false
-            });
-
+            activeList.tasks.push({ id: activeList.nextTaskId++, text: text, completed: false });
             taskInput.value = ''; 
             saveData(); 
-            
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             renderTasks();
             taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
@@ -367,12 +351,10 @@
         function toggleTask(id) {
             const activeList = getActiveList();
             if (!activeList) return;
-
             const task = activeList.tasks.find(t => t.id === id);
             if (task) {
                 task.completed = !task.completed;
                 saveData(); 
-                
                 if (tg.HapticFeedback) {
                     if (task.completed) tg.HapticFeedback.notificationOccurred('success');
                     else tg.HapticFeedback.impactOccurred('light');
@@ -384,63 +366,79 @@
         function deleteTask(id) {
             const activeList = getActiveList();
             if (!activeList) return;
-
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
             saveData(); 
-            
             if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             renderTasks();
         }
 
+        // New Tab Logic
         function openNewTabModal() {
             newTabInput.value = '';
             newTabModal.classList.remove('hidden');
             setTimeout(() => newTabInput.focus(), 100);
         }
-
-        function closeNewTabModal() {
-            newTabModal.classList.add('hidden');
-        }
-
+        function closeNewTabModal() { newTabModal.classList.add('hidden'); }
         function createNewTab() {
             const name = newTabInput.value.trim();
             if (name === '') return;
-
-            const newList = {
-                id: nextListId++,
-                name: name,
-                tasks: [],
-                nextTaskId: 1
-            };
-            
+            const newList = { id: nextListId++, name: name, tasks: [], nextTaskId: 1 };
             lists.push(newList);
-            activeListId = newList.id; // Switch to the newly created tab automatically
+            activeListId = newList.id;
             saveData();
-            
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            
             closeNewTabModal();
             renderTabs();
             renderTasks();
         }
 
+        // Edit Tab Logic
+        function openEditTabModal() {
+            const activeList = getActiveList();
+            editTabInput.value = activeList.name;
+            deleteTabBtn.style.display = lists.length <= 1 ? 'none' : 'block';
+            editTabModal.classList.remove('hidden');
+            setTimeout(() => editTabInput.focus(), 100);
+        }
+        function closeEditTabModal() { editTabModal.classList.add('hidden'); }
+        function saveEditTab() {
+            const newName = editTabInput.value.trim();
+            if (newName === '') return;
+            const activeList = getActiveList();
+            activeList.name = newName;
+            saveData();
+            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            closeEditTabModal();
+            renderTabs();
+        }
+        function deleteCurrentTab() {
+            if (lists.length <= 1) return;
+            lists = lists.filter(l => l.id !== activeListId);
+            activeListId = lists[0].id;
+            saveData();
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
+            closeEditTabModal();
+            renderTabs();
+            renderTasks();
+        }
+
+        // Event Listeners
         addBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         
-        taskInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') addTask();
-        });
+        document.getElementById('cancel-tab-btn').addEventListener('click', closeNewTabModal);
+        document.getElementById('save-tab-btn').addEventListener('click', createNewTab);
+        newTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') createNewTab(); });
 
-        cancelTabBtn.addEventListener('click', closeNewTabModal);
-        
-        saveTabBtn.addEventListener('click', createNewTab);
-        
-        newTabInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') createNewTab();
-        });
+        document.getElementById('cancel-edit-tab-btn').addEventListener('click', closeEditTabModal);
+        document.getElementById('save-edit-tab-btn').addEventListener('click', saveEditTab);
+        deleteTabBtn.addEventListener('click', deleteCurrentTab);
+        editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
-        // Initial setup sequence
+        // Initial render
         renderTabs();
         renderTasks();
+        initSortable();
 
     </script>
 </body>
