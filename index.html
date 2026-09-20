@@ -171,7 +171,7 @@
         <!-- Empty State Container -->
         <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 022-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             <p class="text-[var(--hint-color)]">Your tab is empty.<br>Add some items to get started!</p>
         </div>
@@ -356,7 +356,7 @@
 
         let lists = [];
         let activeListId = 1;
-        let nextListId = 6;
+        let nextListId = 4;
         let sortableTasksInstance = null;
         let sortableTabsInstance = null;
 
@@ -407,20 +407,17 @@
             });
 
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
-            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 6;
+            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
+            // Default setup: 1 timed (Cleaning), 1 shopping (Groceries), 1 pill tracker (Pills)
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-            const householdTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
-            const deepCleanTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
 
             lists = [
                 { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
-                { id: 2, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 },
-                { id: 3, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
-                { id: 4, name: 'Household', type: 'shopping', tasks: householdTasks, nextTaskId: householdTasks.length + 1 },
-                { id: 5, name: 'Pills', type: 'pill', tasks: pillTasks, nextTaskId: pillTasks.length + 1 }
+                { id: 2, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
+                { id: 3, name: 'Pills', type: 'pill', tasks: pillTasks, nextTaskId: pillTasks.length + 1 }
             ];
             activeListId = 1;
             saveData();
@@ -1074,6 +1071,7 @@
             const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
             const hasGroceries = lists.some(l => l.name === 'Groceries');
             const hasHousehold = lists.some(l => l.name === 'Household');
+            const hasPillPreset = lists.some(l => l.name === 'Pills Preset');
 
             if (!hasCleaning) {
                 const opt = document.createElement('option');
@@ -1097,6 +1095,12 @@
                 const opt = document.createElement('option');
                 opt.value = 'Household';
                 opt.textContent = 'Household Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasPillPreset) {
+                const opt = document.createElement('option');
+                opt.value = 'Pills Preset';
+                opt.textContent = 'Pill Preset';
                 presetsGroup.appendChild(opt);
             }
 
@@ -1139,7 +1143,7 @@
                     listType = 'shopping';
                 } else if (val === 'cat_pill') {
                     listType = 'pill';
-                    initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
+                    initialTasks = []; // Creates an empty pill tracker
                 } else {
                     listType = 'standard';
                 }
@@ -1157,6 +1161,9 @@
                 } else if (name === 'Household') {
                     initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
                     listType = 'shopping';
+                } else if (name === 'Pills Preset') {
+                    initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
+                    listType = 'pill';
                 }
             }
 
