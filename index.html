@@ -103,7 +103,7 @@
             <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’t.</p>
         </header>
 
-        <!-- Tabs Area (Drag & Drop Enabled) -->
+        <!-- Tabs Area -->
         <div class="flex items-center gap-2 overflow-x-auto pb-1 shrink-0 tab-scroll-container" id="tab-bar">
             <!-- Tabs injected via JS -->
         </div>
@@ -193,11 +193,20 @@
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New Tab</h2>
             
+            <div class="custom-select-wrapper w-full">
+                <select 
+                    id="new-tab-select" 
+                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-[var(--hint-color)] border-opacity-20 font-medium"
+                >
+                    <!-- Options injected via JS -->
+                </select>
+            </div>
+
             <input 
                 type="text" 
                 id="new-tab-input" 
-                placeholder="Tab name..." 
-                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all font-medium"
+                placeholder="Enter tab name..." 
+                class="hidden w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
 
             <div class="flex gap-2 justify-end mt-2">
@@ -215,7 +224,7 @@
                 type="text" 
                 id="edit-tab-input" 
                 placeholder="Tab name..." 
-                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all font-medium"
+                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <div class="flex gap-2 justify-between mt-2">
                 <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--button-text-color)] bg-[var(--destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
@@ -272,14 +281,80 @@
             { text: "Wash the bedsheets", time: 5 },
             { text: "Trash", time: 5 }
         ];
+        
+        const defaultHousehold = [
+            { text: "Gloves", status: 'in_stock' },
+            { text: "Sponges", status: 'low' },
+            { text: "Toilet paper", status: 'out_of_stock' },
+            { text: "Domestos", status: 'in_stock' },
+            { text: "Cilit", status: 'in_stock' },
+            { text: "Barkeeper's friend", status: 'low' },
+            { text: "Pronto spray", status: 'in_stock' },
+            { text: "Floor soap", status: 'in_stock' }
+        ];
+
+        const defaultDeepClean = [
+            { text: "Vacuuming the floors", time: 15 },
+            { text: "Washing the curtains", time: 20 },
+            { text: "Washing the cat bed", time: 15 },
+            { text: "Washing decorative textile", time: 15 },
+            { text: "Dusting the kitchen", time: 10 },
+            { text: "Dishes", time: 10 },
+            { text: "Wine glasses", time: 10 },
+            { text: "Kitchen cabinets", time: 20 },
+            { text: "Under the sink cabinets", time: 15 },
+            { text: "Fridge", time: 30 },
+            { text: "Airfryer", time: 10 },
+            { text: "Toaster", time: 10 },
+            { text: "Coffemaker area", time: 10 },
+            { text: "Kitchen surfaces", time: 10 },
+            { text: "Kitchen sink", time: 5 },
+            { text: "Window boards", time: 10 },
+            { text: "Table", time: 5 },
+            { text: "Books", time: 15 },
+            { text: "Flowers", time: 10 },
+            { text: "Mirrors", time: 5 },
+            { text: "Lamps", time: 5 },
+            { text: "Change the bedsheets", time: 10 },
+            { text: "Sofa", time: 10 },
+            { text: "Ironing", time: 20 },
+            { text: "Dusting the rooms", time: 15 },
+            { text: "Baseboards", time: 15 },
+            { text: "Baseboards behind the furniture", time: 20 },
+            { text: "Toilet", time: 10 },
+            { text: "Litterboxes", time: 5 },
+            { text: "Washing machine", time: 10 },
+            { text: "Shower", time: 15 },
+            { text: "Vanity area", time: 5 },
+            { text: "Bathroom sink", time: 5 },
+            { text: "Vacuuming", time: 10 },
+            { text: "Floors", time: 15 },
+            { text: "Wash the towels & rugs", time: 10 },
+            { text: "Wash the bedsheets", time: 5 },
+            { text: "Trash", time: 5 }
+        ];
 
         const defaultGroceries = [
             { text: "Fresh milk", status: 'in_stock' },
             { text: "Eggs", status: 'low' },
             { text: "Butter", status: 'in_stock' },
             { text: "Greek yogurt", status: 'in_stock' },
+            { text: "Cheddar cheese", status: 'in_stock' },
             { text: "Sourdough bread", status: 'out_of_stock' },
-            { text: "Coffee beans", status: 'low' }
+            { text: "Olive oil", status: 'in_stock' },
+            { text: "Coffee beans", status: 'low' },
+            { text: "Bananas", status: 'out_of_stock' },
+            { text: "Avocados", status: 'in_stock' },
+            { text: "Apples", status: 'in_stock' },
+            { text: "Spinach", status: 'low' },
+            { text: "Tomatoes", status: 'in_stock' },
+            { text: "Garlic & onions", status: 'in_stock' },
+            { text: "Chicken breast", status: 'in_stock' },
+            { text: "Salmon fillets", status: 'out_of_stock' },
+            { text: "Rice", status: 'in_stock' },
+            { text: "Pasta", status: 'in_stock' },
+            { text: "Oatmeal", status: 'in_stock' },
+            { text: "Sparkling water", status: 'low' }
         ];
 
         const defaultPills = [
@@ -307,11 +382,18 @@
         function isPillOverdue(task) {
             if (task.completed) return false;
             
-            const currentHour = new Date().getHours();
+            const currentHour = new Date().getHours(); // 0 to 23
             const section = task.section || 'morning';
 
-            if (section === 'morning' && currentHour >= 12) return true;
-            if (section === 'day' && currentHour >= 18) return true;
+            // Morning window: 0:00 - 11:59 (overdue from 12:00 onwards)
+            if (section === 'morning' && currentHour >= 12) {
+                return true;
+            }
+            // Day window: 12:00 - 17:59 (overdue from 18:00 onwards)
+            if (section === 'day' && currentHour >= 18) {
+                return true;
+            }
+            // Night window: 18:00 - 23:59 (stays pending until midnight reset)
             return false;
         }
 
@@ -320,6 +402,7 @@
             return list.tasks.some(task => isPillOverdue(task));
         }
 
+        // Midnight Reset Tracker
         function checkAndResetPillTrackers() {
             const todayStr = new Date().toDateString();
             const lastResetDate = localStorage.getItem('cleanAppLastPillReset');
@@ -335,6 +418,7 @@
             }
         }
 
+        // Periodically refresh UI to check time status automatically
         setInterval(() => {
             checkAndResetPillTrackers();
             const activeList = getActiveList();
@@ -352,8 +436,10 @@
             
             lists.forEach(l => {
                 if (!l.type) {
-                    l.type = (l.name === 'Groceries' || l.name === 'Household') ? 'shopping' : 'timed';
+                    l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'shopping' : 'timed';
                 }
+                if (l.name === 'Supplies') l.name = 'Household';
+                
                 l.tasks.forEach(t => {
                     if (l.type === 'timed' && t.time === undefined) t.time = 5;
                     if (l.type === 'shopping' && !t.status) t.status = t.completed ? 'out_of_stock' : 'in_stock';
@@ -367,6 +453,7 @@
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
+            // Default setup: 1 timed (Cleaning), 1 shopping (Groceries), 1 pill tracker (Pills)
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
@@ -406,6 +493,7 @@
 
         // Modals
         const newTabModal = document.getElementById('new-tab-modal');
+        const newTabSelect = document.getElementById('new-tab-select');
         const newTabInput = document.getElementById('new-tab-input');
         
         const editTabModal = document.getElementById('edit-tab-modal');
@@ -437,6 +525,7 @@
         function updateInputAreaState() {
             const activeList = getActiveList();
             
+            // Hide all specialized inputs first
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
             pillTimeWrapper.classList.add('hidden');
@@ -586,6 +675,7 @@
                 }`;
                 btn.dataset.id = list.id;
                 
+                // Red indicator badge on tab if any pills inside are overdue
                 const badgeDotHtml = isOverduePillTab 
                     ? `<span class="w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm"></span>` 
                     : '';
@@ -608,11 +698,12 @@
             });
 
             const addTabBtn = document.createElement('button');
-            addTabBtn.className = 'add-tab-btn flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--secondary-bg-color)] text-[var(--button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--hint-color)] border-opacity-20';
+            addTabBtn.className = 'flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--secondary-bg-color)] text-[var(--button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--hint-color)] border-opacity-20';
             addTabBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
+            // Auto-scroll active tab into view in header
             const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
             if (activeBtn) {
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -726,6 +817,7 @@
 
             if (activeList) {
                 if (activeList.type === 'pill') {
+                    // RENDER PILL TRACKER SECTIONS
                     const sections = [
                         { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
                         { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
@@ -754,6 +846,7 @@
                         const leftDiv = document.createElement('div');
                         leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
+                        // Drag Handle
                         const dragHandle = document.createElement('div');
                         dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
                         dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
@@ -763,6 +856,7 @@
                         contentDiv.onclick = () => toggleTask(task.id);
 
                         if (activeList.type === 'shopping') {
+                            // SHOPPING LIST SPECIFIC UI (3-State Badges)
                             const status = task.status || 'in_stock';
                             
                             let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
@@ -801,6 +895,7 @@
                             contentDiv.appendChild(span);
 
                         } else {
+                            // STANDARD & TIMED TASK LIST UI
                             li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
 
                             const checkbox = document.createElement('div');
@@ -876,14 +971,13 @@
             });
         }
 
-        // Direct Drag & Drop for Tabs
         function initSortableTabs() {
             if (sortableTabsInstance) sortableTabsInstance.destroy();
             sortableTabsInstance = new Sortable(tabBar, {
                 animation: 200,
-                draggable: 'button:not(.add-tab-btn)', 
+                draggable: 'button:not(:last-child)', 
                 filter: '.add-tab-btn',
-                delay: 100,
+                delay: 150,
                 delayOnTouchOnly: true,
                 onStart: function (evt) {
                     evt.item.dataset.dragging = "true";
@@ -1030,9 +1124,97 @@
         }
 
         function openNewTabModal() {
-            newTabInput.value = '';
+            newTabSelect.innerHTML = '';
+            
+            // 1. New Lists Optgroup
+            const newListsGroup = document.createElement('optgroup');
+            newListsGroup.label = "── LISTS ──";
+
+            const optTimed = document.createElement('option');
+            optTimed.value = 'cat_timed';
+            optTimed.textContent = 'Timed Task List';
+
+            const optSimple = document.createElement('option');
+            optSimple.value = 'cat_simple';
+            optSimple.textContent = 'Simple Task List';
+
+            const optShopping = document.createElement('option');
+            optShopping.value = 'cat_shopping';
+            optShopping.textContent = 'Shopping List';
+
+            newListsGroup.appendChild(optTimed);
+            newListsGroup.appendChild(optSimple);
+            newListsGroup.appendChild(optShopping);
+            newTabSelect.appendChild(newListsGroup);
+
+            // 2. Trackers Optgroup
+            const trackersGroup = document.createElement('optgroup');
+            trackersGroup.label = "── TRACKERS ──";
+
+            const optPill = document.createElement('option');
+            optPill.value = 'cat_pill';
+            optPill.textContent = 'Pill Tracker';
+            trackersGroup.appendChild(optPill);
+            newTabSelect.appendChild(trackersGroup);
+
+            // 3. Presets Optgroup
+            const presetsGroup = document.createElement('optgroup');
+            presetsGroup.label = "── PRESETS ──";
+
+            const hasCleaning = lists.some(l => l.name === 'Cleaning');
+            const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
+            const hasGroceries = lists.some(l => l.name === 'Groceries');
+            const hasHousehold = lists.some(l => l.name === 'Household');
+            const hasPillPreset = lists.some(l => l.name === 'Pills Preset');
+
+            if (!hasCleaning) {
+                const opt = document.createElement('option');
+                opt.value = 'Cleaning';
+                opt.textContent = 'Clean Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasDeepClean) {
+                const opt = document.createElement('option');
+                opt.value = 'Deep Clean';
+                opt.textContent = 'Deep Clean Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasGroceries) {
+                const opt = document.createElement('option');
+                opt.value = 'Groceries';
+                opt.textContent = 'Groceries Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasHousehold) {
+                const opt = document.createElement('option');
+                opt.value = 'Household';
+                opt.textContent = 'Household Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasPillPreset) {
+                const opt = document.createElement('option');
+                opt.value = 'Pills Preset';
+                opt.textContent = 'Pill Tracker Preset';
+                presetsGroup.appendChild(opt);
+            }
+
+            if (presetsGroup.children.length > 0) {
+                newTabSelect.appendChild(presetsGroup);
+            }
+
+            handleNewTabSelectChange();
             newTabModal.classList.remove('hidden');
-            setTimeout(() => newTabInput.focus(), 100);
+        }
+
+        function handleNewTabSelectChange() {
+            const val = newTabSelect.value;
+            if (val.startsWith('cat_')) {
+                newTabInput.classList.remove('hidden');
+                newTabInput.value = '';
+                setTimeout(() => newTabInput.focus(), 100);
+            } else {
+                newTabInput.classList.add('hidden');
+            }
         }
 
         function closeNewTabModal() { 
@@ -1040,17 +1222,48 @@
         }
 
         function createNewTab() {
-            const name = newTabInput.value.trim();
-            if (name === '') return;
+            let name = '';
+            let initialTasks = [];
+            let listType = 'timed';
+            const val = newTabSelect.value;
 
-            const newList = { 
-                id: nextListId++, 
-                name: name, 
-                type: 'timed', 
-                tasks: [], 
-                nextTaskId: 1 
-            };
+            if (val.startsWith('cat_')) {
+                name = newTabInput.value.trim();
+                if (name === '') return;
 
+                if (val === 'cat_timed') {
+                    listType = 'timed';
+                } else if (val === 'cat_shopping') {
+                    listType = 'shopping';
+                } else if (val === 'cat_pill') {
+                    listType = 'pill';
+                    initialTasks = []; // Empty pill tracker
+                } else {
+                    listType = 'standard';
+                }
+            } else {
+                name = val;
+                if (name === 'Cleaning') {
+                    initialTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
+                } else if (name === 'Deep Clean') {
+                    initialTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
+                } else if (name === 'Groceries') {
+                    initialTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
+                } else if (name === 'Household') {
+                    initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
+                } else if (name === 'Pills Preset') {
+                    initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
+                    listType = 'pill';
+                }
+            }
+
+            const nextTId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
+            const newList = { id: nextListId++, name: name, type: listType, tasks: initialTasks, nextTaskId: nextTId };
+            
             lists.push(newList);
             activeListId = newList.id;
             saveData();
@@ -1097,6 +1310,7 @@
         let isSwiping = false;
 
         taskContainer.addEventListener('touchstart', (e) => {
+            // Ignore swipe if touching drag handle or interactive elements
             if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('input')) {
                 isSwiping = false;
                 return;
@@ -1117,6 +1331,7 @@
             const diffX = touchCurrentX - touchStartX;
             const diffY = touchCurrentY - touchStartY;
 
+            // Lock horizontal swipe if user is clearly scrolling vertically
             if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
                 isSwiping = false;
                 taskContainer.style.transform = '';
@@ -1137,9 +1352,10 @@
             taskContainer.classList.remove('swiping');
 
             const diffX = touchCurrentX - touchStartX;
-            const threshold = 60;
+            const threshold = 60; // Minimum distance to register a tab swipe switch
 
             if (diffX < -threshold) {
+                // Swipe Left -> Go to Next Tab or Open New Tab Modal if on last tab
                 const currentIndex = lists.findIndex(l => l.id === activeListId);
                 if (currentIndex < lists.length - 1) {
                     switchTab(lists[currentIndex + 1].id);
@@ -1147,12 +1363,14 @@
                     openNewTabModal();
                 }
             } else if (diffX > threshold) {
+                // Swipe Right -> Go to Previous Tab
                 const currentIndex = lists.findIndex(l => l.id === activeListId);
                 if (currentIndex > 0) {
                     switchTab(lists[currentIndex - 1].id);
                 }
             }
 
+            // Reset visual transforms
             taskContainer.style.transform = '';
             taskContainer.style.opacity = '';
         });
@@ -1169,6 +1387,7 @@
 
         document.getElementById('cancel-tab-btn').addEventListener('click', closeNewTabModal);
         document.getElementById('save-tab-btn').addEventListener('click', createNewTab);
+        newTabSelect.addEventListener('change', handleNewTabSelectChange);
         newTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') createNewTab(); });
 
         document.getElementById('cancel-edit-tab-btn').addEventListener('click', closeEditTabModal);
