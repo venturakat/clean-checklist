@@ -1032,17 +1032,7 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
-            // Trackers Optgroup
-            const trackersGroup = document.createElement('optgroup');
-            trackersGroup.label = "── TRACKERS ──";
-
-            const optPill = document.createElement('option');
-            optPill.value = 'cat_pill';
-            optPill.textContent = 'Pill Tracker';
-            trackersGroup.appendChild(optPill);
-            newTabSelect.appendChild(trackersGroup);
-
-            // New Lists Optgroup
+            // 1. New Lists Optgroup
             const newListsGroup = document.createElement('optgroup');
             newListsGroup.label = "── LISTS ──";
 
@@ -1063,7 +1053,17 @@
             newListsGroup.appendChild(optShopping);
             newTabSelect.appendChild(newListsGroup);
 
-            // Presets Optgroup
+            // 2. Trackers Optgroup
+            const trackersGroup = document.createElement('optgroup');
+            trackersGroup.label = "── TRACKERS ──";
+
+            const optPill = document.createElement('option');
+            optPill.value = 'cat_pill';
+            optPill.textContent = 'Pill Tracker';
+            trackersGroup.appendChild(optPill);
+            newTabSelect.appendChild(trackersGroup);
+
+            // 3. Presets Optgroup
             const presetsGroup = document.createElement('optgroup');
             presetsGroup.label = "── PRESETS ──";
 
@@ -1100,7 +1100,7 @@
             if (!hasPillPreset) {
                 const opt = document.createElement('option');
                 opt.value = 'Pills Preset';
-                opt.textContent = 'Pill Preset';
+                opt.textContent = 'Pill Tracker Preset';
                 presetsGroup.appendChild(opt);
             }
 
