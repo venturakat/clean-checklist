@@ -63,6 +63,24 @@
         }
         
         .sortable-ghost { opacity: 0.4; }
+
+        /* Custom dropdown arrow indicator */
+        .custom-select-wrapper {
+            position: relative;
+        }
+        .custom-select-wrapper::after {
+            content: "";
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0.65rem;
+            height: 0.65rem;
+            border-right: 2px solid var(--hint-color);
+            border-bottom: 2px solid var(--hint-color);
+            transform: translateY(-70%) rotate(45deg);
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4">
@@ -146,16 +164,19 @@
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New List</h2>
             
-            <select 
-                id="new-tab-select" 
-                class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all">
-                <!-- Options injected via JS -->
-            </select>
+            <div class="custom-select-wrapper w-full">
+                <select 
+                    id="new-tab-select" 
+                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-[var(--hint-color)] border-opacity-20 font-medium"
+                >
+                    <!-- Options injected via JS -->
+                </select>
+            </div>
 
             <input 
                 type="text" 
                 id="new-tab-input" 
-                placeholder="Enter custom list name..." 
+                placeholder="Enter list name..." 
                 class="hidden w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
 
@@ -236,7 +257,7 @@
             { text: "Trash", time: 5 }
         ];
         
-        const defaultSupplies = [
+        const defaultHousehold = [
             { text: "Gloves", time: 0 },
             { text: "Sponges", time: 0 },
             { text: "Toilet paper", time: 0 },
@@ -258,7 +279,7 @@
             { text: "Kitchen cabinets", time: 20 },
             { text: "Under the sink cabinets", time: 15 },
             { text: "Fridge", time: 30 },
-            { text: "Airfryer", time: 15 },
+            { text: "Airfryer", time: 10 },
             { text: "Toaster", time: 10 },
             { text: "Coffemaker area", time: 10 },
             { text: "Kitchen surfaces", time: 10 },
@@ -288,9 +309,32 @@
             { text: "Trash", time: 5 }
         ];
 
+        const defaultGroceries = [
+            { text: "Fresh milk", time: 0 },
+            { text: "Eggs", time: 0 },
+            { text: "Butter", time: 0 },
+            { text: "Greek yogurt", time: 0 },
+            { text: "Cheddar cheese", time: 0 },
+            { text: "Sourdough bread", time: 0 },
+            { text: "Olive oil", time: 0 },
+            { text: "Coffee beans", time: 0 },
+            { text: "Bananas", time: 0 },
+            { text: "Avocados", time: 0 },
+            { text: "Apples", time: 0 },
+            { text: "Spinach", time: 0 },
+            { text: "Tomatoes", time: 0 },
+            { text: "Garlic & onions", time: 0 },
+            { text: "Chicken breast", time: 0 },
+            { text: "Salmon fillets", time: 0 },
+            { text: "Rice", time: 0 },
+            { text: "Pasta", time: 0 },
+            { text: "Oatmeal", time: 0 },
+            { text: "Sparkling water", time: 0 }
+        ];
+
         let lists = [];
         let activeListId = 1;
-        let nextListId = 4;
+        let nextListId = 5;
         let sortableTasksInstance = null;
         let sortableTabsInstance = null;
 
@@ -310,24 +354,27 @@
             
             lists.forEach(l => {
                 if (!l.type) {
-                    l.type = l.name === 'Supplies' ? 'standard' : 'timed';
+                    l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'standard' : 'timed';
                 }
+                if (l.name === 'Supplies') l.name = 'Household';
                 l.tasks.forEach(t => {
                     if (t.time === undefined) t.time = l.type === 'timed' ? 5 : 0;
                 });
             });
 
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
-            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
+            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 5;
         } else {
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-            const suppliesTasks = defaultSupplies.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const householdTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const deepCleanTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
 
             lists = [
                 { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
-                { id: 2, name: 'Supplies', type: 'standard', tasks: suppliesTasks, nextTaskId: suppliesTasks.length + 1 },
-                { id: 3, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 }
+                { id: 2, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 },
+                { id: 3, name: 'Groceries', type: 'standard', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
+                { id: 4, name: 'Household', type: 'standard', tasks: householdTasks, nextTaskId: householdTasks.length + 1 }
             ];
             activeListId = 1;
             saveData();
@@ -422,7 +469,7 @@
                     updateTaskVisualGradients();
                 } else {
                     stopTimer();
-                    alert('Time is up! Great job cleaning.');
+                    alert('Time is up! Great job.');
                 }
             }, 1000);
         }
@@ -761,38 +808,64 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
+            // New Lists Optgroup
+            const newListsGroup = document.createElement('optgroup');
+            newListsGroup.label = "── NEW LISTS ──";
+
+            const optTimed = document.createElement('option');
+            optTimed.value = 'cat_timed';
+            optTimed.textContent = 'Timed Task List';
+
+            const optSimple = document.createElement('option');
+            optSimple.value = 'cat_simple';
+            optSimple.textContent = 'Simple Task List';
+
+            const optShopping = document.createElement('option');
+            optShopping.value = 'cat_shopping';
+            optShopping.textContent = 'Shopping List';
+
+            newListsGroup.appendChild(optTimed);
+            newListsGroup.appendChild(optSimple);
+            newListsGroup.appendChild(optShopping);
+            newTabSelect.appendChild(newListsGroup);
+
+            // Presets Optgroup
+            const presetsGroup = document.createElement('optgroup');
+            presetsGroup.label = "── PRESETS ──";
+
             const hasCleaning = lists.some(l => l.name === 'Cleaning');
-            const hasSupplies = lists.some(l => l.name === 'Supplies');
             const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
+            const hasGroceries = lists.some(l => l.name === 'Groceries');
+            const hasHousehold = lists.some(l => l.name === 'Household');
 
             if (!hasCleaning) {
                 const opt = document.createElement('option');
                 opt.value = 'Cleaning';
-                opt.textContent = 'Cleaning Preset';
-                newTabSelect.appendChild(opt);
-            }
-            if (!hasSupplies) {
-                const opt = document.createElement('option');
-                opt.value = 'Supplies';
-                opt.textContent = 'Supplies Preset';
-                newTabSelect.appendChild(opt);
+                opt.textContent = 'Clean Preset';
+                presetsGroup.appendChild(opt);
             }
             if (!hasDeepClean) {
                 const opt = document.createElement('option');
                 opt.value = 'Deep Clean';
                 opt.textContent = 'Deep Clean Preset';
-                newTabSelect.appendChild(opt);
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasGroceries) {
+                const opt = document.createElement('option');
+                opt.value = 'Groceries';
+                opt.textContent = 'Groceries Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasHousehold) {
+                const opt = document.createElement('option');
+                opt.value = 'Household';
+                opt.textContent = 'Household Preset';
+                presetsGroup.appendChild(opt);
             }
 
-            const customSimpleOpt = document.createElement('option');
-            customSimpleOpt.value = 'custom_simple';
-            customSimpleOpt.textContent = 'Custom Simple List';
-            newTabSelect.appendChild(customSimpleOpt);
-
-            const customTimedOpt = document.createElement('option');
-            customTimedOpt.value = 'custom_timed';
-            customTimedOpt.textContent = 'Custom Timed List';
-            newTabSelect.appendChild(customTimedOpt);
+            if (presetsGroup.children.length > 0) {
+                newTabSelect.appendChild(presetsGroup);
+            }
 
             handleNewTabSelectChange();
             newTabModal.classList.remove('hidden');
@@ -800,7 +873,7 @@
 
         function handleNewTabSelectChange() {
             const val = newTabSelect.value;
-            if (val === 'custom_simple' || val === 'custom_timed') {
+            if (val.startsWith('cat_')) {
                 newTabInput.classList.remove('hidden');
                 newTabInput.value = '';
                 setTimeout(() => newTabInput.focus(), 100);
@@ -819,21 +892,29 @@
             let listType = 'timed';
             const val = newTabSelect.value;
 
-            if (val === 'custom_simple' || val === 'custom_timed') {
+            if (val.startsWith('cat_')) {
                 name = newTabInput.value.trim();
                 if (name === '') return;
-                listType = (val === 'custom_timed') ? 'timed' : 'standard';
+
+                if (val === 'cat_timed') {
+                    listType = 'timed';
+                } else {
+                    listType = 'standard'; // Simple task list and shopping list are non-timed for now
+                }
             } else {
                 name = val;
                 if (name === 'Cleaning') {
                     initialTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
                     listType = 'timed';
-                } else if (name === 'Supplies') {
-                    initialTasks = defaultSupplies.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-                    listType = 'standard';
                 } else if (name === 'Deep Clean') {
                     initialTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
                     listType = 'timed';
+                } else if (name === 'Groceries') {
+                    initialTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'standard';
+                } else if (name === 'Household') {
+                    initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'standard';
                 }
             }
 
