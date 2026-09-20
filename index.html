@@ -118,7 +118,7 @@
             <input 
                 type="text" 
                 id="task-input" 
-                placeholder="Add a new task..." 
+                placeholder="Add a new item..." 
                 class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <input 
@@ -154,7 +154,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <p class="text-[var(--hint-color)]">Your checklist is empty.<br>Add some tasks to get started!</p>
+            <p class="text-[var(--hint-color)]">Your list is empty.<br>Add some items to get started!</p>
         </div>
 
     </div>
@@ -258,14 +258,14 @@
         ];
         
         const defaultHousehold = [
-            { text: "Gloves", time: 0 },
-            { text: "Sponges", time: 0 },
-            { text: "Toilet paper", time: 0 },
-            { text: "Domestos", time: 0 },
-            { text: "Cilit", time: 0 },
-            { text: "Barkeeper's friend", time: 0 },
-            { text: "Pronto spray", time: 0 },
-            { text: "Floor soap", time: 0 }
+            { text: "Gloves", status: 'in_stock' },
+            { text: "Sponges", status: 'low' },
+            { text: "Toilet paper", status: 'out_of_stock' },
+            { text: "Domestos", status: 'in_stock' },
+            { text: "Cilit", status: 'in_stock' },
+            { text: "Barkeeper's friend", status: 'low' },
+            { text: "Pronto spray", status: 'in_stock' },
+            { text: "Floor soap", status: 'in_stock' }
         ];
 
         const defaultDeepClean = [
@@ -310,26 +310,26 @@
         ];
 
         const defaultGroceries = [
-            { text: "Fresh milk", time: 0 },
-            { text: "Eggs", time: 0 },
-            { text: "Butter", time: 0 },
-            { text: "Greek yogurt", time: 0 },
-            { text: "Cheddar cheese", time: 0 },
-            { text: "Sourdough bread", time: 0 },
-            { text: "Olive oil", time: 0 },
-            { text: "Coffee beans", time: 0 },
-            { text: "Bananas", time: 0 },
-            { text: "Avocados", time: 0 },
-            { text: "Apples", time: 0 },
-            { text: "Spinach", time: 0 },
-            { text: "Tomatoes", time: 0 },
-            { text: "Garlic & onions", time: 0 },
-            { text: "Chicken breast", time: 0 },
-            { text: "Salmon fillets", time: 0 },
-            { text: "Rice", time: 0 },
-            { text: "Pasta", time: 0 },
-            { text: "Oatmeal", time: 0 },
-            { text: "Sparkling water", time: 0 }
+            { text: "Fresh milk", status: 'in_stock' },
+            { text: "Eggs", status: 'low' },
+            { text: "Butter", status: 'in_stock' },
+            { text: "Greek yogurt", status: 'in_stock' },
+            { text: "Cheddar cheese", status: 'in_stock' },
+            { text: "Sourdough bread", status: 'out_of_stock' },
+            { text: "Olive oil", status: 'in_stock' },
+            { text: "Coffee beans", status: 'low' },
+            { text: "Bananas", status: 'out_of_stock' },
+            { text: "Avocados", status: 'in_stock' },
+            { text: "Apples", status: 'in_stock' },
+            { text: "Spinach", status: 'low' },
+            { text: "Tomatoes", status: 'in_stock' },
+            { text: "Garlic & onions", status: 'in_stock' },
+            { text: "Chicken breast", status: 'in_stock' },
+            { text: "Salmon fillets", status: 'out_of_stock' },
+            { text: "Rice", status: 'in_stock' },
+            { text: "Pasta", status: 'in_stock' },
+            { text: "Oatmeal", status: 'in_stock' },
+            { text: "Sparkling water", status: 'low' }
         ];
 
         let lists = [];
@@ -354,11 +354,19 @@
             
             lists.forEach(l => {
                 if (!l.type) {
-                    l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'standard' : 'timed';
+                    l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'shopping' : 'timed';
                 }
                 if (l.name === 'Supplies') l.name = 'Household';
+                
+                // Migration to status for shopping lists
                 l.tasks.forEach(t => {
-                    if (t.time === undefined) t.time = l.type === 'timed' ? 5 : 0;
+                    if (l.type === 'timed') {
+                        if (t.time === undefined) t.time = 5;
+                    } else if (l.type === 'shopping') {
+                        if (!t.status) {
+                            t.status = t.completed ? 'out_of_stock' : 'in_stock';
+                        }
+                    }
                 });
             });
 
@@ -366,15 +374,15 @@
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 5;
         } else {
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-            const householdTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const householdTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const deepCleanTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-            const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
 
             lists = [
                 { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
                 { id: 2, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 },
-                { id: 3, name: 'Groceries', type: 'standard', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
-                { id: 4, name: 'Household', type: 'standard', tasks: householdTasks, nextTaskId: householdTasks.length + 1 }
+                { id: 3, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
+                { id: 4, name: 'Household', type: 'shopping', tasks: householdTasks, nextTaskId: householdTasks.length + 1 }
             ];
             activeListId = 1;
             saveData();
@@ -496,7 +504,12 @@
             const activeList = getActiveList();
             if (!activeList) return;
             
-            activeList.tasks.forEach(t => t.completed = false);
+            activeList.tasks.forEach(t => {
+                t.completed = false;
+                if (activeList.type === 'shopping') {
+                    t.status = 'in_stock';
+                }
+            });
             stopTimer();
             saveData();
             renderTasks();
@@ -602,7 +615,6 @@
             if (activeList) {
                 activeList.tasks.forEach(task => {
                     const li = document.createElement('li');
-                    li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
                     li.dataset.id = task.id;
                     
                     const leftDiv = document.createElement('div');
@@ -617,18 +629,63 @@
                     contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
                     contentDiv.onclick = () => toggleTask(task.id);
 
-                    const checkbox = document.createElement('div');
-                    checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                        task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
-                    }`;
-                    checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+                    if (activeList.type === 'shopping') {
+                        // SHOPPING LIST SPECIFIC UI (3-State Badges)
+                        const status = task.status || 'in_stock';
+                        
+                        let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
+                        let badgeStyle = '';
+                        let statusText = '';
+                        let iconHtml = '';
 
-                    const span = document.createElement('span');
-                    span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
-                    span.innerText = task.text;
+                        if (status === 'in_stock') {
+                            bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
+                            badgeStyle = 'bg-emerald-500 text-white';
+                            statusText = 'In Stock';
+                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+                        } else if (status === 'low') {
+                            bgStyle = 'bg-amber-500/15 border border-amber-500/40';
+                            badgeStyle = 'bg-amber-500 text-white';
+                            statusText = 'Low';
+                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
+                        } else if (status === 'out_of_stock') {
+                            bgStyle = 'bg-rose-500/15 border border-rose-500/40';
+                            badgeStyle = 'bg-rose-500 text-white';
+                            statusText = 'Ran Out';
+                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
+                        }
 
-                    contentDiv.appendChild(checkbox);
-                    contentDiv.appendChild(span);
+                        li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${bgStyle}`;
+
+                        const badge = document.createElement('div');
+                        badge.className = `px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shrink-0 transition-transform active:scale-95 shadow-sm ${badgeStyle}`;
+                        badge.innerHTML = `${iconHtml}<span>${statusText}</span>`;
+
+                        const span = document.createElement('span');
+                        span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
+                        span.innerText = task.text;
+
+                        contentDiv.appendChild(badge);
+                        contentDiv.appendChild(span);
+
+                    } else {
+                        // STANDARD & TIMED TASK LIST UI
+                        li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
+
+                        const checkbox = document.createElement('div');
+                        checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                            task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
+                        }`;
+                        checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+
+                        const span = document.createElement('span');
+                        span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
+                        span.innerText = task.text;
+
+                        contentDiv.appendChild(checkbox);
+                        contentDiv.appendChild(span);
+                    }
+
                     leftDiv.appendChild(dragHandle);
                     leftDiv.appendChild(contentDiv);
 
@@ -727,12 +784,15 @@
                 taskTime = Number(taskTimeInput.value) || 5; 
             }
 
-            activeList.tasks.push({ 
+            const newTask = { 
                 id: activeList.nextTaskId++, 
                 text: text, 
                 time: taskTime, 
-                completed: false 
-            });
+                completed: false,
+                status: activeList.type === 'shopping' ? 'out_of_stock' : 'in_stock'
+            };
+
+            activeList.tasks.push(newTask);
 
             taskInput.value = ''; 
             taskTimeInput.value = '';
@@ -747,14 +807,25 @@
             if (!activeList) return;
             const task = activeList.tasks.find(t => t.id === id);
             if (task) {
-                task.completed = !task.completed;
-                
-                if (activeList.type === 'timed') {
-                    timerTotalSeconds = calculateTotalSeconds(activeList);
-                    if (timerSecondsRemaining > timerTotalSeconds) {
-                        timerSecondsRemaining = timerTotalSeconds;
+                if (activeList.type === 'shopping') {
+                    // Cycle status: in_stock -> low -> out_of_stock -> in_stock
+                    const currentStatus = task.status || 'in_stock';
+                    if (currentStatus === 'in_stock') {
+                        task.status = 'low';
+                    } else if (currentStatus === 'low') {
+                        task.status = 'out_of_stock';
+                    } else {
+                        task.status = 'in_stock';
                     }
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                } else {
+                    task.completed = !task.completed;
+                    if (activeList.type === 'timed') {
+                        timerTotalSeconds = calculateTotalSeconds(activeList);
+                        if (timerSecondsRemaining > timerTotalSeconds) {
+                            timerSecondsRemaining = timerTotalSeconds;
+                        }
+                        timerDisplay.textContent = formatTime(timerSecondsRemaining);
+                    }
                 }
 
                 saveData(); 
@@ -898,8 +969,10 @@
 
                 if (val === 'cat_timed') {
                     listType = 'timed';
+                } else if (val === 'cat_shopping') {
+                    listType = 'shopping';
                 } else {
-                    listType = 'standard'; // Simple task list and shopping list are non-timed for now
+                    listType = 'standard';
                 }
             } else {
                 name = val;
@@ -910,11 +983,11 @@
                     initialTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
                     listType = 'timed';
                 } else if (name === 'Groceries') {
-                    initialTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-                    listType = 'standard';
+                    initialTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
                 } else if (name === 'Household') {
-                    initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-                    listType = 'standard';
+                    initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
                 }
             }
 
