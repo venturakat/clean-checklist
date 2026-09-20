@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Clean Checklist</title>
+    <title>Clean App</title>
     
     <!-- PWA / Home Screen Support -->
     <link rel="manifest" href="manifest.json">
@@ -89,8 +89,8 @@
         
         <!-- Header -->
         <header class="py-2 shrink-0">
-            <h1 class="text-2xl font-bold">Clean Checklist</h1>
-            <p class="text-[var(--hint-color)] text-sm mt-1">Stay productive today.</p>
+            <h1 class="text-2xl font-bold">Clean App</h1>
+            <p class="text-[var(--hint-color)] text-sm mt-1">Stay focused and organized.</p>
         </header>
 
         <!-- Tabs Area -->
@@ -114,12 +114,12 @@
         </div>
 
         <!-- Input Area -->
-        <div class="flex gap-2 w-full shrink-0">
+        <div class="flex gap-2 w-full shrink-0 items-center">
             <input 
                 type="text" 
                 id="task-input" 
-                placeholder="Add a new item..." 
-                class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
+                placeholder="Add new..." 
+                class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all min-w-0"
             >
             <input 
                 type="number" 
@@ -129,9 +129,26 @@
                 max="300"
                 inputmode="numeric"
                 pattern="[0-9]*"
-                class="w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium"
+                class="w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0"
                 title="Approximate time in minutes"
             >
+            <!-- Pill Tracker Specific Inputs -->
+            <input 
+                type="text" 
+                id="pill-dose-input" 
+                placeholder="Dose" 
+                class="hidden w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0"
+                title="Dosage (e.g., 10mg, 1 pill)"
+            >
+            <select 
+                id="pill-time-select" 
+                class="hidden bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-2 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-sm font-medium shrink-0 border border-[var(--hint-color)] border-opacity-20"
+            >
+                <option value="morning">Morning</option>
+                <option value="day">Day</option>
+                <option value="night">Night</option>
+            </select>
+
             <button 
                 id="add-btn" 
                 class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-4 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0"
@@ -154,7 +171,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
-            <p class="text-[var(--hint-color)]">Your list is empty.<br>Add some items to get started!</p>
+            <p class="text-[var(--hint-color)]">Your tab is empty.<br>Add some items to get started!</p>
         </div>
 
     </div>
@@ -162,7 +179,7 @@
     <!-- New Tab Modal -->
     <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
-            <h2 class="text-xl font-bold">Create New List</h2>
+            <h2 class="text-xl font-bold">Create New Tab</h2>
             
             <div class="custom-select-wrapper w-full">
                 <select 
@@ -176,7 +193,7 @@
             <input 
                 type="text" 
                 id="new-tab-input" 
-                placeholder="Enter list name..." 
+                placeholder="Enter tab name..." 
                 class="hidden w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
 
@@ -190,11 +207,11 @@
     <!-- Manage Tab Modal (Rename / Delete) -->
     <div id="edit-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
-            <h2 class="text-xl font-bold">Manage List</h2>
+            <h2 class="text-xl font-bold">Manage Tab</h2>
             <input 
                 type="text" 
                 id="edit-tab-input" 
-                placeholder="List name..." 
+                placeholder="Tab name..." 
                 class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <div class="flex gap-2 justify-between mt-2">
@@ -207,19 +224,15 @@
         </div>
     </div>
 
-    <!-- Edit Task Time Modal -->
+    <!-- Edit Task Time / Dose Modal -->
     <div id="edit-time-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
-            <h2 class="text-xl font-bold">Edit Task Time</h2>
+            <h2 id="edit-modal-title" class="text-xl font-bold">Edit Item Details</h2>
             <p id="edit-time-task-name" class="text-sm text-[var(--hint-color)] truncate"></p>
             <input 
-                type="number" 
+                type="text" 
                 id="edit-time-input" 
-                placeholder="Minutes" 
-                min="1" 
-                max="300"
-                inputmode="numeric"
-                pattern="[0-9]*"
+                placeholder="Value" 
                 class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all font-medium text-center text-lg"
             >
             <div class="flex gap-2 justify-end mt-2">
@@ -332,9 +345,16 @@
             { text: "Sparkling water", status: 'low' }
         ];
 
+        const defaultPills = [
+            { text: "Multivitamin", dose: "1 pill", section: "morning", completed: false },
+            { text: "Vitamin D3", dose: "2000 IU", section: "morning", completed: false },
+            { text: "Omega 3", dose: "1000mg", section: "day", completed: false },
+            { text: "Magnesium", dose: "400mg", section: "night", completed: false }
+        ];
+
         let lists = [];
         let activeListId = 1;
-        let nextListId = 5;
+        let nextListId = 6;
         let sortableTasksInstance = null;
         let sortableTabsInstance = null;
 
@@ -345,6 +365,22 @@
         let isTimerRunning = false;
 
         let editingTaskId = null;
+
+        // Midnight Reset Tracker
+        function checkAndResetPillTrackers() {
+            const todayStr = new Date().toDateString();
+            const lastResetDate = localStorage.getItem('cleanAppLastPillReset');
+
+            if (lastResetDate !== todayStr) {
+                lists.forEach(l => {
+                    if (l.type === 'pill') {
+                        l.tasks.forEach(t => t.completed = false);
+                    }
+                });
+                localStorage.setItem('cleanAppLastPillReset', todayStr);
+                saveData();
+            }
+        }
 
         // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
@@ -358,35 +394,37 @@
                 }
                 if (l.name === 'Supplies') l.name = 'Household';
                 
-                // Migration to status for shopping lists
                 l.tasks.forEach(t => {
-                    if (l.type === 'timed') {
-                        if (t.time === undefined) t.time = 5;
-                    } else if (l.type === 'shopping') {
-                        if (!t.status) {
-                            t.status = t.completed ? 'out_of_stock' : 'in_stock';
-                        }
+                    if (l.type === 'timed' && t.time === undefined) t.time = 5;
+                    if (l.type === 'shopping' && !t.status) t.status = t.completed ? 'out_of_stock' : 'in_stock';
+                    if (l.type === 'pill') {
+                        if (!t.section) t.section = 'morning';
+                        if (t.dose === undefined) t.dose = '1 pill';
                     }
                 });
             });
 
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
-            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 5;
+            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 6;
         } else {
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const householdTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const deepCleanTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+            const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
 
             lists = [
                 { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
                 { id: 2, name: 'Deep Clean', type: 'timed', tasks: deepCleanTasks, nextTaskId: deepCleanTasks.length + 1 },
                 { id: 3, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
-                { id: 4, name: 'Household', type: 'shopping', tasks: householdTasks, nextTaskId: householdTasks.length + 1 }
+                { id: 4, name: 'Household', type: 'shopping', tasks: householdTasks, nextTaskId: householdTasks.length + 1 },
+                { id: 5, name: 'Pills', type: 'pill', tasks: pillTasks, nextTaskId: pillTasks.length + 1 }
             ];
             activeListId = 1;
             saveData();
         }
+
+        checkAndResetPillTrackers();
 
         function saveData() {
             localStorage.setItem('cleanChecklistMultiData', JSON.stringify({ lists: lists, activeListId: activeListId }));
@@ -394,6 +432,8 @@
 
         const taskInput = document.getElementById('task-input');
         const taskTimeInput = document.getElementById('task-time-input');
+        const pillDoseInput = document.getElementById('pill-dose-input');
+        const pillTimeSelect = document.getElementById('pill-time-select');
         const addBtn = document.getElementById('add-btn');
         const taskList = document.getElementById('task-list');
         const emptyState = document.getElementById('empty-state');
@@ -415,8 +455,9 @@
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
 
-        // Edit Time Modal Elements
+        // Edit Time / Dose Modal Elements
         const editTimeModal = document.getElementById('edit-time-modal');
+        const editModalTitle = document.getElementById('edit-modal-title');
         const editTimeTaskName = document.getElementById('edit-time-task-name');
         const editTimeInput = document.getElementById('edit-time-input');
 
@@ -429,7 +470,6 @@
             return totalMins * 60;
         }
 
-        // Full HH:MM:SS format restored with compact sizing
         function formatTime(totalSeconds) {
             const hrs = Math.floor(totalSeconds / 3600);
             const mins = Math.floor((totalSeconds % 3600) / 60);
@@ -439,19 +479,34 @@
 
         function updateInputAreaState() {
             const activeList = getActiveList();
+            
+            // Hide all specialized inputs first
+            taskTimeInput.classList.add('hidden');
+            pillDoseInput.classList.add('hidden');
+            pillTimeSelect.classList.add('hidden');
+            timerContainer.classList.add('hidden');
+            timerContainer.classList.remove('flex');
+
             if (activeList.type === 'timed') {
                 taskTimeInput.classList.remove('hidden');
                 timerContainer.classList.remove('hidden');
                 timerContainer.classList.add('flex');
+                taskInput.placeholder = "Add a timed task...";
                 timerTotalSeconds = calculateTotalSeconds(activeList);
                 if (!isTimerRunning) {
                     timerSecondsRemaining = timerTotalSeconds;
                 }
                 timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            } else if (activeList.type === 'pill') {
+                pillDoseInput.classList.remove('hidden');
+                pillTimeSelect.classList.remove('hidden');
+                taskInput.placeholder = "Pill name...";
+                stopTimer();
+            } else if (activeList.type === 'shopping') {
+                taskInput.placeholder = "Add item...";
+                stopTimer();
             } else {
-                taskTimeInput.classList.add('hidden');
-                timerContainer.classList.remove('flex');
-                timerContainer.classList.add('hidden');
+                taskInput.placeholder = "Add a task...";
                 stopTimer();
             }
         }
@@ -528,10 +583,10 @@
 
             const elapsedSecs = Math.max(0, activeTotalSecs - timerSecondsRemaining);
             let accumulatedSecs = 0;
-            const liElements = taskList.querySelectorAll('li');
+            const liElements = taskList.querySelectorAll('li[data-id]');
 
-            activeList.tasks.forEach((task, index) => {
-                const li = liElements[index];
+            activeList.tasks.forEach((task) => {
+                const li = Array.from(liElements).find(el => el.dataset.id == task.id);
                 if (!li) return;
 
                 if (task.completed) {
@@ -600,6 +655,64 @@
             initSortableTabs();
         }
 
+        function createPillTaskElement(task) {
+            const li = document.createElement('li');
+            li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
+            li.dataset.id = task.id;
+
+            const leftDiv = document.createElement('div');
+            leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
+
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
+            dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
+            contentDiv.onclick = () => toggleTask(task.id);
+
+            const checkbox = document.createElement('div');
+            checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
+            }`;
+            checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+
+            const span = document.createElement('span');
+            span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
+            span.innerText = task.text;
+
+            contentDiv.appendChild(checkbox);
+            contentDiv.appendChild(span);
+            leftDiv.appendChild(dragHandle);
+            leftDiv.appendChild(contentDiv);
+
+            const rightSideDiv = document.createElement('div');
+            rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
+
+            if (task.dose) {
+                const doseSpan = document.createElement('span');
+                doseSpan.className = 'bg-[var(--button-color)] bg-opacity-15 text-[var(--button-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
+                doseSpan.innerText = task.dose;
+                doseSpan.title = "Tap to edit dose";
+                doseSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    openEditTimeModal(task.id);
+                };
+                rightSideDiv.appendChild(doseSpan);
+            }
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
+            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+            deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+
+            rightSideDiv.appendChild(deleteBtn);
+
+            li.appendChild(leftDiv);
+            li.appendChild(rightSideDiv);
+            return li;
+        }
+
         function renderTasks() {
             taskList.innerHTML = ''; 
             const activeList = getActiveList();
@@ -613,108 +726,132 @@
             }
 
             if (activeList) {
-                activeList.tasks.forEach(task => {
-                    const li = document.createElement('li');
-                    li.dataset.id = task.id;
-                    
-                    const leftDiv = document.createElement('div');
-                    leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
+                if (activeList.type === 'pill') {
+                    // RENDER PILL TRACKER SECTIONS
+                    const sections = [
+                        { key: 'morning', title: '☀️ Morning' },
+                        { key: 'day', title: '🌤️ Day' },
+                        { key: 'night', title: '🌙 Night' }
+                    ];
 
-                    // Drag Handle
-                    const dragHandle = document.createElement('div');
-                    dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
-                    dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
-                    
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
-                    contentDiv.onclick = () => toggleTask(task.id);
+                    sections.forEach(sec => {
+                        const secTasks = activeList.tasks.filter(t => (t.section || 'morning') === sec.key);
+                        if (secTasks.length > 0) {
+                            const header = document.createElement('div');
+                            header.className = 'text-xs font-bold uppercase tracking-wider text-[var(--hint-color)] pt-3 pb-1 px-1';
+                            header.textContent = sec.title;
+                            taskList.appendChild(header);
 
-                    if (activeList.type === 'shopping') {
-                        // SHOPPING LIST SPECIFIC UI (3-State Badges)
-                        const status = task.status || 'in_stock';
+                            secTasks.forEach(task => {
+                                taskList.appendChild(createPillTaskElement(task));
+                            });
+                        }
+                    });
+
+                } else {
+                    activeList.tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.dataset.id = task.id;
                         
-                        let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
-                        let badgeStyle = '';
-                        let statusText = '';
-                        let iconHtml = '';
+                        const leftDiv = document.createElement('div');
+                        leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
-                        if (status === 'in_stock') {
-                            bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
-                            badgeStyle = 'bg-emerald-500 text-white';
-                            statusText = 'In Stock';
-                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-                        } else if (status === 'low') {
-                            bgStyle = 'bg-amber-500/15 border border-amber-500/40';
-                            badgeStyle = 'bg-amber-500 text-white';
-                            statusText = 'Low';
-                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
-                        } else if (status === 'out_of_stock') {
-                            bgStyle = 'bg-rose-500/15 border border-rose-500/40';
-                            badgeStyle = 'bg-rose-500 text-white';
-                            statusText = 'Ran Out';
-                            iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
+                        // Drag Handle
+                        const dragHandle = document.createElement('div');
+                        dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
+                        dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
+                        
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
+                        contentDiv.onclick = () => toggleTask(task.id);
+
+                        if (activeList.type === 'shopping') {
+                            // SHOPPING LIST SPECIFIC UI (3-State Badges)
+                            const status = task.status || 'in_stock';
+                            
+                            let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
+                            let badgeStyle = '';
+                            let statusText = '';
+                            let iconHtml = '';
+
+                            if (status === 'in_stock') {
+                                bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
+                                badgeStyle = 'bg-emerald-500 text-white';
+                                statusText = 'In Stock';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+                            } else if (status === 'low') {
+                                bgStyle = 'bg-amber-500/15 border border-amber-500/40';
+                                badgeStyle = 'bg-amber-500 text-white';
+                                statusText = 'Low';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
+                            } else if (status === 'out_of_stock') {
+                                bgStyle = 'bg-rose-500/15 border border-rose-500/40';
+                                badgeStyle = 'bg-rose-500 text-white';
+                                statusText = 'Ran Out';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
+                            }
+
+                            li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${bgStyle}`;
+
+                            const badge = document.createElement('div');
+                            badge.className = `px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shrink-0 transition-transform active:scale-95 shadow-sm ${badgeStyle}`;
+                            badge.innerHTML = `${iconHtml}<span>${statusText}</span>`;
+
+                            const span = document.createElement('span');
+                            span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
+                            span.innerText = task.text;
+
+                            contentDiv.appendChild(badge);
+                            contentDiv.appendChild(span);
+
+                        } else {
+                            // STANDARD & TIMED TASK LIST UI
+                            li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
+
+                            const checkbox = document.createElement('div');
+                            checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                                task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
+                            }`;
+                            checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+
+                            const span = document.createElement('span');
+                            span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
+                            span.innerText = task.text;
+
+                            contentDiv.appendChild(checkbox);
+                            contentDiv.appendChild(span);
                         }
 
-                        li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${bgStyle}`;
+                        leftDiv.appendChild(dragHandle);
+                        leftDiv.appendChild(contentDiv);
 
-                        const badge = document.createElement('div');
-                        badge.className = `px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shrink-0 transition-transform active:scale-95 shadow-sm ${badgeStyle}`;
-                        badge.innerHTML = `${iconHtml}<span>${statusText}</span>`;
+                        const rightSideDiv = document.createElement('div');
+                        rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
 
-                        const span = document.createElement('span');
-                        span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
-                        span.innerText = task.text;
+                        if (activeList.type === 'timed' && task.time > 0) {
+                            const timeSpan = document.createElement('span');
+                            timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
+                            timeSpan.innerText = `${task.time}m`;
+                            timeSpan.title = "Tap to edit time";
+                            timeSpan.onclick = (e) => {
+                                e.stopPropagation();
+                                openEditTimeModal(task.id);
+                            };
+                            rightSideDiv.appendChild(timeSpan);
+                        }
 
-                        contentDiv.appendChild(badge);
-                        contentDiv.appendChild(span);
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
+                        deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+                        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                        
+                        rightSideDiv.appendChild(deleteBtn);
 
-                    } else {
-                        // STANDARD & TIMED TASK LIST UI
-                        li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
-
-                        const checkbox = document.createElement('div');
-                        checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                            task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
-                        }`;
-                        checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-
-                        const span = document.createElement('span');
-                        span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
-                        span.innerText = task.text;
-
-                        contentDiv.appendChild(checkbox);
-                        contentDiv.appendChild(span);
-                    }
-
-                    leftDiv.appendChild(dragHandle);
-                    leftDiv.appendChild(contentDiv);
-
-                    const rightSideDiv = document.createElement('div');
-                    rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
-
-                    if (activeList.type === 'timed' && task.time > 0) {
-                        const timeSpan = document.createElement('span');
-                        timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
-                        timeSpan.innerText = `${task.time}m`;
-                        timeSpan.title = "Tap to edit time";
-                        timeSpan.onclick = (e) => {
-                            e.stopPropagation();
-                            openEditTimeModal(task.id);
-                        };
-                        rightSideDiv.appendChild(timeSpan);
-                    }
-
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
-                    deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-                    deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-                    
-                    rightSideDiv.appendChild(deleteBtn);
-
-                    li.appendChild(leftDiv);
-                    li.appendChild(rightSideDiv);
-                    taskList.appendChild(li);
-                });
+                        li.appendChild(leftDiv);
+                        li.appendChild(rightSideDiv);
+                        taskList.appendChild(li);
+                    });
+                }
             }
 
             updateTaskVisualGradients();
@@ -789,13 +926,16 @@
                 text: text, 
                 time: taskTime, 
                 completed: false,
-                status: activeList.type === 'shopping' ? 'out_of_stock' : 'in_stock'
+                status: activeList.type === 'shopping' ? 'out_of_stock' : 'in_stock',
+                dose: activeList.type === 'pill' ? (pillDoseInput.value.trim() || '1 pill') : '',
+                section: activeList.type === 'pill' ? pillTimeSelect.value : ''
             };
 
             activeList.tasks.push(newTask);
 
             taskInput.value = ''; 
             taskTimeInput.value = '';
+            pillDoseInput.value = '';
             saveData(); 
             renderTasks();
             updateInputAreaState();
@@ -808,7 +948,6 @@
             const task = activeList.tasks.find(t => t.id === id);
             if (task) {
                 if (activeList.type === 'shopping') {
-                    // Cycle status: in_stock -> low -> out_of_stock -> in_stock
                     const currentStatus = task.status || 'in_stock';
                     if (currentStatus === 'in_stock') {
                         task.status = 'low';
@@ -849,7 +988,17 @@
 
             editingTaskId = taskId;
             editTimeTaskName.textContent = task.text;
-            editTimeInput.value = task.time;
+
+            if (activeList.type === 'pill') {
+                editModalTitle.textContent = "Edit Pill Dose";
+                editTimeInput.type = "text";
+                editTimeInput.value = task.dose || "1 pill";
+            } else {
+                editModalTitle.textContent = "Edit Task Time (Mins)";
+                editTimeInput.type = "number";
+                editTimeInput.value = task.time || 5;
+            }
+
             editTimeModal.classList.remove('hidden');
             setTimeout(() => {
                 editTimeInput.focus();
@@ -867,8 +1016,12 @@
             const activeList = getActiveList();
             const task = activeList.tasks.find(t => t.id === editingTaskId);
             if (task) {
-                const newTime = Number(editTimeInput.value);
-                task.time = isNaN(newTime) || newTime < 0 ? 0 : newTime;
+                if (activeList.type === 'pill') {
+                    task.dose = editTimeInput.value.trim() || '1 pill';
+                } else {
+                    const newTime = Number(editTimeInput.value);
+                    task.time = isNaN(newTime) || newTime < 0 ? 0 : newTime;
+                }
                 saveData();
                 renderTasks();
                 updateInputAreaState();
@@ -879,9 +1032,19 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
+            // Trackers Optgroup
+            const trackersGroup = document.createElement('optgroup');
+            trackersGroup.label = "── TRACKERS ──";
+
+            const optPill = document.createElement('option');
+            optPill.value = 'cat_pill';
+            optPill.textContent = 'Pill Tracker';
+            trackersGroup.appendChild(optPill);
+            newTabSelect.appendChild(trackersGroup);
+
             // New Lists Optgroup
             const newListsGroup = document.createElement('optgroup');
-            newListsGroup.label = "── NEW LISTS ──";
+            newListsGroup.label = "── LISTS ──";
 
             const optTimed = document.createElement('option');
             optTimed.value = 'cat_timed';
@@ -971,6 +1134,9 @@
                     listType = 'timed';
                 } else if (val === 'cat_shopping') {
                     listType = 'shopping';
+                } else if (val === 'cat_pill') {
+                    listType = 'pill';
+                    initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
                 } else {
                     listType = 'standard';
                 }
@@ -1036,6 +1202,7 @@
         addBtn.addEventListener('click', addTask);
         taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         taskTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
+        pillDoseInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         
         timerToggleBtn.addEventListener('click', toggleTimer);
         timerStopBtn.addEventListener('click', stopTimer);
@@ -1051,7 +1218,7 @@
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
-        // Edit Time Modal Listeners
+        // Edit Time / Dose Modal Listeners
         document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
         editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
