@@ -81,6 +81,16 @@
             transform: translateY(-70%) rotate(45deg);
             pointer-events: none;
         }
+
+        /* Smooth tab transition styling */
+        #task-container {
+            touch-action: pan-y;
+            will-change: transform;
+            transition: transform 0.25s ease-out, opacity 0.25s ease-out;
+        }
+        #task-container.swiping {
+            transition: none !important;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col p-4">
@@ -161,8 +171,8 @@
             </button>
         </div>
 
-        <!-- Checklist Area -->
-        <div class="flex-1 overflow-y-auto mt-2">
+        <!-- Swipable Checklist Container -->
+        <div id="task-container" class="flex-1 overflow-y-auto mt-2">
             <ul id="task-list" class="flex flex-col gap-2 pb-20">
                 <!-- Tasks injected via JS -->
             </ul>
@@ -470,6 +480,7 @@
         const pillTimeSelect = document.getElementById('pill-time-select');
         const addBtn = document.getElementById('add-btn');
         const taskList = document.getElementById('task-list');
+        const taskContainer = document.getElementById('task-container');
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
         
@@ -680,11 +691,7 @@
                     if (isActive) {
                         openEditTabModal();
                     } else {
-                        activeListId = list.id;
-                        saveData();
-                        renderTabs();
-                        renderTasks();
-                        updateInputAreaState();
+                        switchTab(list.id);
                     }
                 };
                 tabBar.appendChild(btn);
@@ -696,7 +703,21 @@
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
+            // Auto-scroll active tab into view in header
+            const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
+            if (activeBtn) {
+                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+
             initSortableTabs();
+        }
+
+        function switchTab(targetListId) {
+            activeListId = targetListId;
+            saveData();
+            renderTabs();
+            renderTasks();
+            updateInputAreaState();
         }
 
         function createPillTaskElement(task) {
@@ -1009,7 +1030,7 @@
             renderTasks();
             renderTabs();
             updateInputAreaState();
-            taskList.parentElement.scrollTop = taskList.parentElement.scrollHeight;
+            taskContainer.scrollTop = taskContainer.scrollHeight;
         }
 
         function toggleTask(id) {
@@ -1280,6 +1301,79 @@
             renderTasks();
             updateInputAreaState();
         }
+
+        // SWIPE GESTURE CONTROLLER FOR TABS
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchCurrentX = 0;
+        let touchCurrentY = 0;
+        let isSwiping = false;
+
+        taskContainer.addEventListener('touchstart', (e) => {
+            // Ignore swipe if touching drag handle or interactive elements
+            if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('input')) {
+                isSwiping = false;
+                return;
+            }
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchCurrentX = touchStartX;
+            touchCurrentY = touchStartY;
+            isSwiping = true;
+            taskContainer.classList.add('swiping');
+        }, { passive: true });
+
+        taskContainer.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            touchCurrentX = e.touches[0].clientX;
+            touchCurrentY = e.touches[0].clientY;
+
+            const diffX = touchCurrentX - touchStartX;
+            const diffY = touchCurrentY - touchStartY;
+
+            // Lock horizontal swipe if user is clearly scrolling vertically
+            if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
+                isSwiping = false;
+                taskContainer.style.transform = '';
+                taskContainer.style.opacity = '';
+                taskContainer.classList.remove('swiping');
+                return;
+            }
+
+            if (Math.abs(diffX) > 10) {
+                taskContainer.style.transform = `translateX(${diffX * 0.4}px)`;
+                taskContainer.style.opacity = `${1 - Math.abs(diffX) / 600}`;
+            }
+        }, { passive: true });
+
+        taskContainer.addEventListener('touchend', () => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            taskContainer.classList.remove('swiping');
+
+            const diffX = touchCurrentX - touchStartX;
+            const threshold = 60; // Minimum distance to register a tab swipe switch
+
+            if (diffX < -threshold) {
+                // Swipe Left -> Go to Next Tab or Open New Tab Modal if on last tab
+                const currentIndex = lists.findIndex(l => l.id === activeListId);
+                if (currentIndex < lists.length - 1) {
+                    switchTab(lists[currentIndex + 1].id);
+                } else {
+                    openNewTabModal();
+                }
+            } else if (diffX > threshold) {
+                // Swipe Right -> Go to Previous Tab
+                const currentIndex = lists.findIndex(l => l.id === activeListId);
+                if (currentIndex > 0) {
+                    switchTab(lists[currentIndex - 1].id);
+                }
+            }
+
+            // Reset visual transforms
+            taskContainer.style.transform = '';
+            taskContainer.style.opacity = '';
+        });
 
         // Event Listeners
         addBtn.addEventListener('click', addTask);
