@@ -71,11 +71,11 @@
         .custom-select-wrapper::after {
             content: "";
             position: absolute;
-            right: 1rem;
+            right: 0.75rem;
             top: 50%;
             transform: translateY(-50%);
-            width: 0.65rem;
-            height: 0.65rem;
+            width: 0.55rem;
+            height: 0.55rem;
             border-right: 2px solid var(--hint-color);
             border-bottom: 2px solid var(--hint-color);
             transform: translateY(-70%) rotate(45deg);
@@ -140,14 +140,16 @@
                 class="hidden w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0"
                 title="Dosage (e.g., 10mg, 1 pill)"
             >
-            <select 
-                id="pill-time-select" 
-                class="hidden bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-2 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-sm font-medium shrink-0 border border-[var(--hint-color)] border-opacity-20"
-            >
-                <option value="morning">Morning</option>
-                <option value="day">Day</option>
-                <option value="night">Night</option>
-            </select>
+            <div id="pill-time-wrapper" class="hidden custom-select-wrapper shrink-0">
+                <select 
+                    id="pill-time-select" 
+                    class="bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl pl-3 pr-8 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-sm font-medium border border-[var(--hint-color)] border-opacity-20 appearance-none cursor-pointer"
+                >
+                    <option value="morning">Morning</option>
+                    <option value="day">Day</option>
+                    <option value="night">Night</option>
+                </select>
+            </div>
 
             <button 
                 id="add-btn" 
@@ -433,6 +435,7 @@
         const taskInput = document.getElementById('task-input');
         const taskTimeInput = document.getElementById('task-time-input');
         const pillDoseInput = document.getElementById('pill-dose-input');
+        const pillTimeWrapper = document.getElementById('pill-time-wrapper');
         const pillTimeSelect = document.getElementById('pill-time-select');
         const addBtn = document.getElementById('add-btn');
         const taskList = document.getElementById('task-list');
@@ -483,7 +486,7 @@
             // Hide all specialized inputs first
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
-            pillTimeSelect.classList.add('hidden');
+            pillTimeWrapper.classList.add('hidden');
             timerContainer.classList.add('hidden');
             timerContainer.classList.remove('flex');
 
@@ -499,7 +502,7 @@
                 timerDisplay.textContent = formatTime(timerSecondsRemaining);
             } else if (activeList.type === 'pill') {
                 pillDoseInput.classList.remove('hidden');
-                pillTimeSelect.classList.remove('hidden');
+                pillTimeWrapper.classList.remove('hidden');
                 taskInput.placeholder = "Pill name...";
                 stopTimer();
             } else if (activeList.type === 'shopping') {
