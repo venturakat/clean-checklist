@@ -171,7 +171,7 @@
         <!-- Empty State Container -->
         <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 022-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
             <p class="text-[var(--hint-color)]">Your tab is empty.<br>Add some items to get started!</p>
         </div>
@@ -694,7 +694,7 @@
 
             if (task.dose) {
                 const doseSpan = document.createElement('span');
-                doseSpan.className = 'bg-[var(--button-color)] bg-opacity-15 text-[var(--button-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
+                doseSpan.className = 'bg-[var(--button-color)] bg-opacity-15 text-[var(--text-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
                 doseSpan.innerText = task.dose;
                 doseSpan.title = "Tap to edit dose";
                 doseSpan.onclick = (e) => {
