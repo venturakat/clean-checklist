@@ -108,7 +108,7 @@
             <!-- Tabs injected via JS -->
         </div>
 
-        <!-- Timer Bar (Only visible for global timed lists) -->
+        <!-- Timer Bar (Only visible for timed lists) -->
         <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10 gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--destructive-text-color)] animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,8 +123,8 @@
             </div>
         </div>
 
-        <!-- Global Input Area (Hidden for planners) -->
-        <div id="top-input-area" class="flex gap-2 w-full shrink-0 items-center">
+        <!-- Input Area -->
+        <div class="flex gap-2 w-full shrink-0 items-center">
             <input 
                 type="text" 
                 id="task-input" 
@@ -173,9 +173,9 @@
 
         <!-- Swipable Checklist Container -->
         <div id="task-container" class="flex-1 overflow-y-auto mt-2">
-            <div id="task-list" class="flex flex-col gap-2 pb-20">
-                <!-- Tasks and Planner blocks injected via JS -->
-            </div>
+            <ul id="task-list" class="flex flex-col gap-2 pb-20">
+                <!-- Tasks injected via JS -->
+            </ul>
         </div>
         
         <!-- Empty State Container -->
@@ -259,17 +259,107 @@
             { text: "Vacuuming the floors", time: 15 },
             { text: "Dusting the kitchen", time: 10 },
             { text: "Dishes", time: 10 },
+            { text: "Kitchen surfaces", time: 10 },
+            { text: "Kitchen sink", time: 5 },
+            { text: "Window boards", time: 10 },
+            { text: "Table", time: 5 },
+            { text: "Mirrors", time: 5 },
+            { text: "Lamps", time: 5 },
+            { text: "Change the bedsheets", time: 10 },
+            { text: "Sofa", time: 5 },
+            { text: "Ironing", time: 20 },
+            { text: "Dusting the rooms", time: 15 },
+            { text: "Baseboards", time: 10 },
+            { text: "Toilet", time: 10 },
+            { text: "Litterboxes", time: 5 },
+            { text: "Shower", time: 15 },
+            { text: "Vanity area", time: 5 },
+            { text: "Bathroom sink", time: 5 },
+            { text: "Vacuuming", time: 5 },
+            { text: "Floors", time: 10 },
+            { text: "Wash the towels & rugs", time: 10 },
+            { text: "Wash the bedsheets", time: 5 },
+            { text: "Trash", time: 5 }
+        ];
+        
+        const defaultHousehold = [
+            { text: "Gloves", status: 'in_stock' },
+            { text: "Sponges", status: 'low' },
+            { text: "Toilet paper", status: 'out_of_stock' },
+            { text: "Domestos", status: 'in_stock' },
+            { text: "Cilit", status: 'in_stock' },
+            { text: "Barkeeper's friend", status: 'low' },
+            { text: "Pronto spray", status: 'in_stock' },
+            { text: "Floor soap", status: 'in_stock' }
+        ];
+
+        const defaultDeepClean = [
+            { text: "Vacuuming the floors", time: 15 },
+            { text: "Washing the curtains", time: 20 },
+            { text: "Washing the cat bed", time: 15 },
+            { text: "Washing decorative textile", time: 15 },
+            { text: "Dusting the kitchen", time: 10 },
+            { text: "Dishes", time: 10 },
+            { text: "Wine glasses", time: 10 },
+            { text: "Kitchen cabinets", time: 20 },
+            { text: "Under the sink cabinets", time: 15 },
+            { text: "Fridge", time: 30 },
+            { text: "Airfryer", time: 10 },
+            { text: "Toaster", time: 10 },
+            { text: "Coffemaker area", time: 10 },
+            { text: "Kitchen surfaces", time: 10 },
+            { text: "Kitchen sink", time: 5 },
+            { text: "Window boards", time: 10 },
+            { text: "Table", time: 5 },
+            { text: "Books", time: 15 },
+            { text: "Flowers", time: 10 },
+            { text: "Mirrors", time: 5 },
+            { text: "Lamps", time: 5 },
+            { text: "Change the bedsheets", time: 10 },
+            { text: "Sofa", time: 10 },
+            { text: "Ironing", time: 20 },
+            { text: "Dusting the rooms", time: 15 },
+            { text: "Baseboards", time: 15 },
+            { text: "Baseboards behind the furniture", time: 20 },
+            { text: "Toilet", time: 10 },
+            { text: "Litterboxes", time: 5 },
+            { text: "Washing machine", time: 10 },
+            { text: "Shower", time: 15 },
+            { text: "Vanity area", time: 5 },
+            { text: "Bathroom sink", time: 5 },
+            { text: "Vacuuming", time: 10 },
+            { text: "Floors", time: 15 },
+            { text: "Wash the towels & rugs", time: 10 },
+            { text: "Wash the bedsheets", time: 5 },
             { text: "Trash", time: 5 }
         ];
 
         const defaultGroceries = [
             { text: "Fresh milk", status: 'in_stock' },
             { text: "Eggs", status: 'low' },
-            { text: "Butter", status: 'in_stock' }
+            { text: "Butter", status: 'in_stock' },
+            { text: "Greek yogurt", status: 'in_stock' },
+            { text: "Cheddar cheese", status: 'in_stock' },
+            { text: "Sourdough bread", status: 'out_of_stock' },
+            { text: "Olive oil", status: 'in_stock' },
+            { text: "Coffee beans", status: 'low' },
+            { text: "Bananas", status: 'out_of_stock' },
+            { text: "Avocados", status: 'in_stock' },
+            { text: "Apples", status: 'in_stock' },
+            { text: "Spinach", status: 'low' },
+            { text: "Tomatoes", status: 'in_stock' },
+            { text: "Garlic & onions", status: 'in_stock' },
+            { text: "Chicken breast", status: 'in_stock' },
+            { text: "Salmon fillets", status: 'out_of_stock' },
+            { text: "Rice", status: 'in_stock' },
+            { text: "Pasta", status: 'in_stock' },
+            { text: "Oatmeal", status: 'in_stock' },
+            { text: "Sparkling water", status: 'low' }
         ];
 
         const defaultPills = [
             { text: "Multivitamin", dose: "1 pill", section: "morning", completed: false },
+            { text: "Vitamin D3", dose: "2000 IU", section: "morning", completed: false },
             { text: "Omega 3", dose: "1000mg", section: "day", completed: false },
             { text: "Magnesium", dose: "400mg", section: "night", completed: false }
         ];
@@ -277,29 +367,33 @@
         let lists = [];
         let activeListId = 1;
         let nextListId = 4;
-        
-        let sortableTasksInstances = [];
+        let sortableTasksInstance = null;
         let sortableTabsInstance = null;
 
-        // Global Timer State
+        // Timer State
         let timerTotalSeconds = 0;
         let timerSecondsRemaining = 0;
         let timerInterval = null;
         let isTimerRunning = false;
-
-        // Planner Timers State
-        let sectionTimers = {}; // e.g. { "1_morning": { remaining: 1200, isRunning: false, intervalId: null } }
 
         let editingTaskId = null;
 
         // Time-Window Checker for Pills
         function isPillOverdue(task) {
             if (task.completed) return false;
-            const currentHour = new Date().getHours();
+            
+            const currentHour = new Date().getHours(); // 0 to 23
             const section = task.section || 'morning';
 
-            if (section === 'morning' && currentHour >= 12) return true;
-            if (section === 'day' && currentHour >= 18) return true;
+            // Morning window: 0:00 - 11:59 (overdue from 12:00 onwards)
+            if (section === 'morning' && currentHour >= 12) {
+                return true;
+            }
+            // Day window: 12:00 - 17:59 (overdue from 18:00 onwards)
+            if (section === 'day' && currentHour >= 18) {
+                return true;
+            }
+            // Night window: 18:00 - 23:59 (stays pending until midnight reset)
             return false;
         }
 
@@ -308,6 +402,7 @@
             return list.tasks.some(task => isPillOverdue(task));
         }
 
+        // Midnight Reset Tracker
         function checkAndResetPillTrackers() {
             const todayStr = new Date().toDateString();
             const lastResetDate = localStorage.getItem('cleanAppLastPillReset');
@@ -323,6 +418,7 @@
             }
         }
 
+        // Periodically refresh UI to check time status automatically
         setInterval(() => {
             checkAndResetPillTrackers();
             const activeList = getActiveList();
@@ -342,9 +438,10 @@
                 if (!l.type) {
                     l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'shopping' : 'timed';
                 }
+                if (l.name === 'Supplies') l.name = 'Household';
                 
                 l.tasks.forEach(t => {
-                    if ((l.type === 'timed' || l.type === 'planner') && t.time === undefined) t.time = 5;
+                    if (l.type === 'timed' && t.time === undefined) t.time = 5;
                     if (l.type === 'shopping' && !t.status) t.status = t.completed ? 'out_of_stock' : 'in_stock';
                     if (l.type === 'pill') {
                         if (!t.section) t.section = 'morning';
@@ -356,6 +453,7 @@
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
+            // Default setup: 1 timed (Cleaning), 1 shopping (Groceries), 1 pill tracker (Pills)
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
@@ -375,7 +473,6 @@
             localStorage.setItem('cleanChecklistMultiData', JSON.stringify({ lists: lists, activeListId: activeListId }));
         }
 
-        const topInputArea = document.getElementById('top-input-area');
         const taskInput = document.getElementById('task-input');
         const taskTimeInput = document.getElementById('task-time-input');
         const pillDoseInput = document.getElementById('pill-dose-input');
@@ -403,7 +500,7 @@
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
 
-        // Edit Modal
+        // Edit Time / Dose Modal Elements
         const editTimeModal = document.getElementById('edit-time-modal');
         const editModalTitle = document.getElementById('edit-modal-title');
         const editTimeTaskName = document.getElementById('edit-time-task-name');
@@ -411,13 +508,10 @@
 
         function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
 
-        function calculateTotalSeconds(list, section = null) {
-            if (!list || (list.type !== 'timed' && list.type !== 'planner')) return 0;
-            let tasks = list.tasks.filter(t => !t.completed);
-            if (section) {
-                tasks = tasks.filter(t => t.section === section);
-            }
-            const totalMins = tasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
+        function calculateTotalSeconds(list) {
+            if (!list || list.type !== 'timed') return 0;
+            const activeUncompletedTasks = list.tasks.filter(t => !t.completed);
+            const totalMins = activeUncompletedTasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
             return totalMins * 60;
         }
 
@@ -431,58 +525,43 @@
         function updateInputAreaState() {
             const activeList = getActiveList();
             
+            // Hide all specialized inputs first
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
             pillTimeWrapper.classList.add('hidden');
             timerContainer.classList.add('hidden');
             timerContainer.classList.remove('flex');
 
-            if (activeList.type === 'planner') {
-                topInputArea.classList.add('hidden');
-                stopAllTimers();
-            } else {
-                topInputArea.classList.remove('hidden');
-                topInputArea.classList.add('flex');
-                
-                if (activeList.type === 'timed') {
-                    taskTimeInput.classList.remove('hidden');
-                    timerContainer.classList.remove('hidden');
-                    timerContainer.classList.add('flex');
-                    taskInput.placeholder = "Add a timed task...";
-                    timerTotalSeconds = calculateTotalSeconds(activeList);
-                    if (!isTimerRunning) {
-                        timerSecondsRemaining = timerTotalSeconds;
-                    }
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
-                } else if (activeList.type === 'pill') {
-                    pillDoseInput.classList.remove('hidden');
-                    pillTimeWrapper.classList.remove('hidden');
-                    taskInput.placeholder = "Pill name...";
-                    stopAllTimers();
-                } else if (activeList.type === 'shopping') {
-                    taskInput.placeholder = "Add item...";
-                    stopAllTimers();
-                } else {
-                    taskInput.placeholder = "Add a task...";
-                    stopAllTimers();
+            if (activeList.type === 'timed') {
+                taskTimeInput.classList.remove('hidden');
+                timerContainer.classList.remove('hidden');
+                timerContainer.classList.add('flex');
+                taskInput.placeholder = "Add a timed task...";
+                timerTotalSeconds = calculateTotalSeconds(activeList);
+                if (!isTimerRunning) {
+                    timerSecondsRemaining = timerTotalSeconds;
                 }
+                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            } else if (activeList.type === 'pill') {
+                pillDoseInput.classList.remove('hidden');
+                pillTimeWrapper.classList.remove('hidden');
+                taskInput.placeholder = "Pill name...";
+                stopTimer();
+            } else if (activeList.type === 'shopping') {
+                taskInput.placeholder = "Add item...";
+                stopTimer();
+            } else {
+                taskInput.placeholder = "Add a task...";
+                stopTimer();
             }
         }
 
-        function stopAllTimers() {
-            pauseTimer();
-            Object.keys(sectionTimers).forEach(key => {
-                if (sectionTimers[key].isRunning) {
-                    sectionTimers[key].isRunning = false;
-                    clearInterval(sectionTimers[key].intervalId);
-                }
-            });
-        }
-
-        // Global Timer Controls
         function toggleTimer() {
-            if (isTimerRunning) pauseTimer();
-            else startTimer();
+            if (isTimerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
         }
 
         function startTimer() {
@@ -521,35 +600,6 @@
             }
         }
 
-        // Planner Section Timer Controls
-        function toggleSectionTimer(timerKey, section) {
-            const timer = sectionTimers[timerKey];
-            if (!timer) return;
-
-            if (timer.isRunning) {
-                timer.isRunning = false;
-                clearInterval(timer.intervalId);
-                renderTasks(); 
-            } else {
-                if (timer.remaining <= 0) return;
-                timer.isRunning = true;
-                timer.intervalId = setInterval(() => {
-                    if (timer.remaining > 0) {
-                        timer.remaining--;
-                        const display = document.getElementById(`display-${timerKey}`);
-                        if (display) display.textContent = formatTime(timer.remaining);
-                        updateAllPlannerVisualGradients();
-                    } else {
-                        timer.isRunning = false;
-                        clearInterval(timer.intervalId);
-                        renderTasks();
-                        alert(`Time's up for ${section} block!`);
-                    }
-                }, 1000);
-                renderTasks(); 
-            }
-        }
-
         function uncheckAllTasks() {
             const activeList = getActiveList();
             if (!activeList) return;
@@ -560,7 +610,7 @@
                     t.status = 'in_stock';
                 }
             });
-            stopAllTimers();
+            stopTimer();
             saveData();
             renderTasks();
             renderTabs();
@@ -572,7 +622,8 @@
             if (!activeList || activeList.type !== 'timed') return;
 
             const uncompletedTasks = activeList.tasks.filter(t => !t.completed);
-            const activeTotalSecs = calculateTotalSeconds(activeList);
+            const activeTotalMins = uncompletedTasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
+            const activeTotalSecs = activeTotalMins * 60;
 
             if (activeTotalSecs <= 0) return;
 
@@ -609,155 +660,6 @@
             });
         }
 
-        function updateAllPlannerVisualGradients() {
-            const activeList = getActiveList();
-            if (!activeList || activeList.type !== 'planner') return;
-            
-            const sections = ['morning', 'afternoon', 'evening'];
-            sections.forEach(sec => {
-                const timerKey = `${activeList.id}_${sec}`;
-                const timer = sectionTimers[timerKey];
-                if (!timer) return;
-
-                const secTasks = activeList.tasks.filter(t => t.section === sec);
-                const uncompletedTasks = secTasks.filter(t => !t.completed);
-                const activeTotalSecs = calculateTotalSeconds(activeList, sec);
-
-                if (activeTotalSecs <= 0) return;
-
-                const elapsedSecs = Math.max(0, activeTotalSecs - timer.remaining);
-                let accumulatedSecs = 0;
-                
-                const liElements = document.querySelectorAll(`ul[data-section="${sec}"] li[data-id]`);
-                
-                secTasks.forEach((task) => {
-                    const li = Array.from(liElements).find(el => el.dataset.id == task.id);
-                    if (!li) return;
-
-                    if (task.completed) {
-                        li.style.background = 'rgba(34, 197, 94, 0.2)';
-                        li.style.borderColor = 'rgba(34, 197, 94, 0.4)';
-                        return;
-                    }
-
-                    const taskDurationSecs = (Number(task.time) || 0) * 60;
-                    const taskStartSecs = accumulatedSecs;
-                    accumulatedSecs += taskDurationSecs;
-                    const taskEndSecs = accumulatedSecs;
-
-                    if (timer.isRunning && elapsedSecs >= taskStartSecs) {
-                        const taskProgress = Math.min(1, Math.max(0, (elapsedSecs - taskStartSecs) / Math.max(1, (taskEndSecs - taskStartSecs))));
-                        if (taskProgress > 0) {
-                            li.style.background = `linear-gradient(to right, rgba(239, 68, 68, 0.45) ${taskProgress * 100}%, var(--secondary-bg-color) ${taskProgress * 100}%)`;
-                        } else {
-                            li.style.background = 'var(--secondary-bg-color)';
-                        }
-                    } else {
-                        li.style.background = 'var(--secondary-bg-color)';
-                    }
-                });
-            });
-        }
-
-        function createStandardTaskElement(task, listType) {
-            const li = document.createElement('li');
-            li.dataset.id = task.id;
-            
-            const leftDiv = document.createElement('div');
-            leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
-
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
-            dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
-            contentDiv.onclick = () => toggleTask(task.id);
-
-            if (listType === 'shopping') {
-                const status = task.status || 'in_stock';
-                let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
-                let badgeStyle = '';
-                let statusText = '';
-                let iconHtml = '';
-
-                if (status === 'in_stock') {
-                    bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
-                    badgeStyle = 'bg-emerald-500 text-white';
-                    statusText = 'In Stock';
-                    iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-                } else if (status === 'low') {
-                    bgStyle = 'bg-amber-500/15 border border-amber-500/40';
-                    badgeStyle = 'bg-amber-500 text-white';
-                    statusText = 'Low';
-                    iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
-                } else if (status === 'out_of_stock') {
-                    bgStyle = 'bg-rose-500/15 border border-rose-500/40';
-                    badgeStyle = 'bg-rose-500 text-white';
-                    statusText = 'Ran Out';
-                    iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
-                }
-
-                li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${bgStyle}`;
-
-                const badge = document.createElement('div');
-                badge.className = `px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shrink-0 transition-transform active:scale-95 shadow-sm ${badgeStyle}`;
-                badge.innerHTML = `${iconHtml}<span>${statusText}</span>`;
-
-                const span = document.createElement('span');
-                span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
-                span.innerText = task.text;
-
-                contentDiv.appendChild(badge);
-                contentDiv.appendChild(span);
-
-            } else {
-                li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
-
-                const checkbox = document.createElement('div');
-                checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                    task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
-                }`;
-                checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-
-                const span = document.createElement('span');
-                span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
-                span.innerText = task.text;
-
-                contentDiv.appendChild(checkbox);
-                contentDiv.appendChild(span);
-            }
-
-            leftDiv.appendChild(dragHandle);
-            leftDiv.appendChild(contentDiv);
-
-            const rightSideDiv = document.createElement('div');
-            rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
-
-            if ((listType === 'timed' || listType === 'planner') && task.time > 0) {
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
-                timeSpan.innerText = `${task.time}m`;
-                timeSpan.title = "Tap to edit time";
-                timeSpan.onclick = (e) => {
-                    e.stopPropagation();
-                    openEditTimeModal(task.id);
-                };
-                rightSideDiv.appendChild(timeSpan);
-            }
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
-            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-            deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-            
-            rightSideDiv.appendChild(deleteBtn);
-
-            li.appendChild(leftDiv);
-            li.appendChild(rightSideDiv);
-            return li;
-        }
-
         function renderTabs() {
             tabBar.innerHTML = '';
             
@@ -773,6 +675,7 @@
                 }`;
                 btn.dataset.id = list.id;
                 
+                // Red indicator badge on tab if any pills inside are overdue
                 const badgeDotHtml = isOverduePillTab 
                     ? `<span class="w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm"></span>` 
                     : '';
@@ -800,6 +703,7 @@
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
+            // Auto-scroll active tab into view in header
             const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
             if (activeBtn) {
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -816,132 +720,16 @@
             updateInputAreaState();
         }
 
-        function renderTasks() {
-            taskList.innerHTML = ''; 
-            const activeList = getActiveList();
-            
-            // Empty State Handlers
-            if (!activeList || (activeList.tasks.length === 0 && activeList.type !== 'planner')) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-            } else {
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-            }
-
-            if (activeList) {
-                if (activeList.type === 'pill') {
-                    // PILL TRACKER
-                    const sections = [
-                        { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
-                        { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
-                        { key: 'night', title: '🌙 Night (6 PM - 12 AM)' }
-                    ];
-
-                    sections.forEach(sec => {
-                        const secTasks = activeList.tasks.filter(t => (t.section || 'morning') === sec.key);
-                        if (secTasks.length > 0) {
-                            const header = document.createElement('div');
-                            header.className = 'text-xs font-bold uppercase tracking-wider text-[var(--hint-color)] pt-3 pb-1 px-1';
-                            header.textContent = sec.title;
-                            taskList.appendChild(header);
-
-                            secTasks.forEach(task => {
-                                taskList.appendChild(createPillTaskElement(task)); // Assuming createPillTaskElement exists, merging with standard later
-                            });
-                        }
-                    });
-
-                } else if (activeList.type === 'planner') {
-                    // DAILY PLANNER UI
-                    const sections = [
-                        { key: 'morning', title: 'Morning Block' },
-                        { key: 'afternoon', title: 'Afternoon Block' },
-                        { key: 'evening', title: 'Evening Block' }
-                    ];
-
-                    sections.forEach(sec => {
-                        const timerKey = `${activeList.id}_${sec.key}`;
-                        const totalSecs = calculateTotalSeconds(activeList, sec.key);
-                        
-                        if (!sectionTimers[timerKey]) {
-                            sectionTimers[timerKey] = { remaining: totalSecs, isRunning: false, intervalId: null };
-                        }
-                        if (!sectionTimers[timerKey].isRunning && sectionTimers[timerKey].remaining > totalSecs) {
-                            sectionTimers[timerKey].remaining = totalSecs;
-                        }
-
-                        const sectionDiv = document.createElement('div');
-                        sectionDiv.className = 'mb-6 flex flex-col gap-2';
-
-                        const isRunning = sectionTimers[timerKey].isRunning;
-                        const header = document.createElement('div');
-                        header.className = 'flex justify-between items-center mb-1 px-1';
-                        header.innerHTML = `
-                            <h3 class="font-bold text-lg text-[var(--text-color)]">${sec.title}</h3>
-                            <div class="flex items-center gap-2 bg-[var(--secondary-bg-color)] px-3 py-1.5 rounded-xl border border-[var(--hint-color)] border-opacity-10 shadow-sm">
-                                ${isRunning ? `<svg class="h-3 w-3 text-[var(--destructive-text-color)] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` : ''}
-                                <span class="font-mono font-bold text-sm tracking-tight" id="display-${timerKey}">${formatTime(sectionTimers[timerKey].remaining)}</span>
-                                <button class="${isRunning ? 'bg-[var(--destructive-text-color)] text-white' : 'bg-[var(--button-color)] text-[var(--button-text-color)]'} text-xs px-2.5 py-1.5 rounded-lg font-semibold active:scale-95 transition-transform" onclick="toggleSectionTimer('${timerKey}', '${sec.key}')">
-                                    ${isRunning ? 'Pause' : 'Start'}
-                                </button>
-                            </div>
-                        `;
-                        sectionDiv.appendChild(header);
-
-                        const secTaskList = document.createElement('ul');
-                        secTaskList.className = 'flex flex-col gap-2 task-dropzone min-h-[10px]'; // min-h allows dropping into empty list
-                        secTaskList.dataset.section = sec.key;
-
-                        const secTasks = activeList.tasks.filter(t => t.section === sec.key);
-                        secTasks.forEach(task => {
-                            secTaskList.appendChild(createStandardTaskElement(task, 'planner'));
-                        });
-                        sectionDiv.appendChild(secTaskList);
-
-                        // Inline Input
-                        const inputDiv = document.createElement('div');
-                        inputDiv.className = 'flex gap-2 w-full mt-1 shrink-0 items-center';
-                        inputDiv.innerHTML = `
-                            <input type="text" id="input-text-${timerKey}" placeholder="Add to ${sec.title}..." class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all min-w-0 text-sm">
-                            <input type="number" id="input-time-${timerKey}" placeholder="Mins" class="w-16 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-2 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0 text-sm">
-                            <button onclick="addPlannerTask('${sec.key}', '${timerKey}')" class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-3 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                            </button>
-                        `;
-                        
-                        setTimeout(() => {
-                            const tIn = document.getElementById(`input-text-${timerKey}`);
-                            const mIn = document.getElementById(`input-time-${timerKey}`);
-                            if(tIn) tIn.addEventListener('keypress', e => { if (e.key === 'Enter') addPlannerTask(sec.key, timerKey); });
-                            if(mIn) mIn.addEventListener('keypress', e => { if (e.key === 'Enter') addPlannerTask(sec.key, timerKey); });
-                        }, 0);
-
-                        sectionDiv.appendChild(inputDiv);
-                        taskList.appendChild(sectionDiv);
-                    });
-
-                    updateAllPlannerVisualGradients();
-
-                } else {
-                    // STANDARD / TIMED / SHOPPING UI
-                    activeList.tasks.forEach(task => {
-                        taskList.appendChild(createStandardTaskElement(task, activeList.type));
-                    });
-                    updateTaskVisualGradients();
-                }
-            }
-
-            initSortableTasks();
-        }
-
-        // Pill logic helper (reused from your existing structure)
         function createPillTaskElement(task) {
             const overdue = isPillOverdue(task);
+            
             const li = document.createElement('li');
             li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
-                task.completed ? 'bg-[var(--secondary-bg-color)] opacity-75' 
-                : overdue ? 'bg-rose-500/15 border border-rose-500/40' : 'bg-[var(--secondary-bg-color)]'
+                task.completed 
+                    ? 'bg-[var(--secondary-bg-color)] opacity-75' 
+                    : overdue 
+                        ? 'bg-rose-500/15 border border-rose-500/40' 
+                        : 'bg-[var(--secondary-bg-color)]'
             }`;
             li.dataset.id = task.id;
 
@@ -958,15 +746,21 @@
 
             const checkbox = document.createElement('div');
             checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                task.completed ? 'border-green-500 bg-green-500 text-white' 
-                : overdue ? 'border-rose-500 bg-rose-500/20 text-transparent' : 'border-[var(--hint-color)] text-transparent'
+                task.completed 
+                    ? 'border-green-500 bg-green-500 text-white' 
+                    : overdue 
+                        ? 'border-rose-500 bg-rose-500/20 text-transparent' 
+                        : 'border-[var(--hint-color)] text-transparent'
             }`;
             checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
 
             const span = document.createElement('span');
             span.className = `text-base select-none truncate transition-all duration-200 ${
-                task.completed ? 'line-through text-[var(--hint-color)]' 
-                : overdue ? 'text-[var(--destructive-text-color)] font-semibold' : 'text-[var(--text-color)]'
+                task.completed 
+                    ? 'line-through text-[var(--hint-color)]' 
+                    : overdue 
+                        ? 'text-[var(--destructive-text-color)] font-semibold' 
+                        : 'text-[var(--text-color)]'
             }`;
             span.innerText = task.text;
 
@@ -990,7 +784,10 @@
                 doseSpan.className = 'bg-[var(--button-color)] bg-opacity-15 text-[var(--text-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
                 doseSpan.innerText = task.dose;
                 doseSpan.title = "Tap to edit dose";
-                doseSpan.onclick = (e) => { e.stopPropagation(); openEditTimeModal(task.id); };
+                doseSpan.onclick = (e) => {
+                    e.stopPropagation();
+                    openEditTimeModal(task.id);
+                };
                 rightSideDiv.appendChild(doseSpan);
             }
 
@@ -1000,71 +797,178 @@
             deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
 
             rightSideDiv.appendChild(deleteBtn);
+
             li.appendChild(leftDiv);
             li.appendChild(rightSideDiv);
             return li;
         }
 
-        function initSortableTasks() {
-            if (sortableTasksInstances && sortableTasksInstances.length > 0) {
-                sortableTasksInstances.forEach(inst => inst.destroy());
-            }
-            sortableTasksInstances = [];
-
+        function renderTasks() {
+            taskList.innerHTML = ''; 
             const activeList = getActiveList();
-            if (!activeList) return;
-
-            if (activeList.type === 'planner') {
-                const dropzones = document.querySelectorAll('.task-dropzone');
-                dropzones.forEach(zone => {
-                    sortableTasksInstances.push(new Sortable(zone, {
-                        group: 'planner-tasks',
-                        handle: '.drag-handle',
-                        animation: 200,
-                        delay: 100,
-                        delayOnTouchOnly: true,
-                        onEnd: function (evt) {
-                            const itemEl = evt.item;
-                            const taskId = parseInt(itemEl.dataset.id);
-                            const newSection = evt.to.dataset.section;
-                            
-                            const task = activeList.tasks.find(t => t.id === taskId);
-                            if (task) task.section = newSection; 
-                            
-                            const allNodes = Array.from(document.querySelectorAll('.task-dropzone li[data-id]'));
-                            activeList.tasks.sort((a, b) => {
-                                const aIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === a.id);
-                                const bIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === b.id);
-                                if (aIndex === -1) return 1; if (bIndex === -1) return -1;
-                                return aIndex - bIndex;
-                            });
-                            
-                            saveData();
-                            renderTasks();
-                        }
-                    }));
-                });
+            
+            if (!activeList || activeList.tasks.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
             } else {
-                sortableTasksInstances.push(new Sortable(taskList, {
-                    handle: '.drag-handle',
-                    animation: 200,
-                    delay: 100,
-                    delayOnTouchOnly: true,
-                    onEnd: function (evt) {
-                        const itemEl = evt.item;
-                        const taskNodes = Array.from(taskList.querySelectorAll('li[data-id]'));
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+
+            if (activeList) {
+                if (activeList.type === 'pill') {
+                    // RENDER PILL TRACKER SECTIONS
+                    const sections = [
+                        { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
+                        { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
+                        { key: 'night', title: '🌙 Night (6 PM - 12 AM)' }
+                    ];
+
+                    sections.forEach(sec => {
+                        const secTasks = activeList.tasks.filter(t => (t.section || 'morning') === sec.key);
+                        if (secTasks.length > 0) {
+                            const header = document.createElement('div');
+                            header.className = 'text-xs font-bold uppercase tracking-wider text-[var(--hint-color)] pt-3 pb-1 px-1';
+                            header.textContent = sec.title;
+                            taskList.appendChild(header);
+
+                            secTasks.forEach(task => {
+                                taskList.appendChild(createPillTaskElement(task));
+                            });
+                        }
+                    });
+
+                } else {
+                    activeList.tasks.forEach(task => {
+                        const li = document.createElement('li');
+                        li.dataset.id = task.id;
                         
-                        activeList.tasks.sort((a, b) => {
-                            const aIndex = taskNodes.findIndex(node => parseInt(node.dataset.id) === a.id);
-                            const bIndex = taskNodes.findIndex(node => parseInt(node.dataset.id) === b.id);
-                            if (aIndex === -1) return 1; if (bIndex === -1) return -1;
-                            return aIndex - bIndex;
-                        });
+                        const leftDiv = document.createElement('div');
+                        leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
+
+                        // Drag Handle
+                        const dragHandle = document.createElement('div');
+                        dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
+                        dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
+                        
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
+                        contentDiv.onclick = () => toggleTask(task.id);
+
+                        if (activeList.type === 'shopping') {
+                            // SHOPPING LIST SPECIFIC UI (3-State Badges)
+                            const status = task.status || 'in_stock';
+                            
+                            let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
+                            let badgeStyle = '';
+                            let statusText = '';
+                            let iconHtml = '';
+
+                            if (status === 'in_stock') {
+                                bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
+                                badgeStyle = 'bg-emerald-500 text-white';
+                                statusText = 'In Stock';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+                            } else if (status === 'low') {
+                                bgStyle = 'bg-amber-500/15 border border-amber-500/40';
+                                badgeStyle = 'bg-amber-500 text-white';
+                                statusText = 'Low';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>`;
+                            } else if (status === 'out_of_stock') {
+                                bgStyle = 'bg-rose-500/15 border border-rose-500/40';
+                                badgeStyle = 'bg-rose-500 text-white';
+                                statusText = 'Ran Out';
+                                iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
+                            }
+
+                            li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${bgStyle}`;
+
+                            const badge = document.createElement('div');
+                            badge.className = `px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shrink-0 transition-transform active:scale-95 shadow-sm ${badgeStyle}`;
+                            badge.innerHTML = `${iconHtml}<span>${statusText}</span>`;
+
+                            const span = document.createElement('span');
+                            span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
+                            span.innerText = task.text;
+
+                            contentDiv.appendChild(badge);
+                            contentDiv.appendChild(span);
+
+                        } else {
+                            // STANDARD & TIMED TASK LIST UI
+                            li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
+
+                            const checkbox = document.createElement('div');
+                            checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
+                                task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
+                            }`;
+                            checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+
+                            const span = document.createElement('span');
+                            span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
+                            span.innerText = task.text;
+
+                            contentDiv.appendChild(checkbox);
+                            contentDiv.appendChild(span);
+                        }
+
+                        leftDiv.appendChild(dragHandle);
+                        leftDiv.appendChild(contentDiv);
+
+                        const rightSideDiv = document.createElement('div');
+                        rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
+
+                        if (activeList.type === 'timed' && task.time > 0) {
+                            const timeSpan = document.createElement('span');
+                            timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
+                            timeSpan.innerText = `${task.time}m`;
+                            timeSpan.title = "Tap to edit time";
+                            timeSpan.onclick = (e) => {
+                                e.stopPropagation();
+                                openEditTimeModal(task.id);
+                            };
+                            rightSideDiv.appendChild(timeSpan);
+                        }
+
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
+                        deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+                        deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+                        
+                        rightSideDiv.appendChild(deleteBtn);
+
+                        li.appendChild(leftDiv);
+                        li.appendChild(rightSideDiv);
+                        taskList.appendChild(li);
+                    });
+                }
+            }
+
+            updateTaskVisualGradients();
+        }
+
+        function initSortableTasks() {
+            if (sortableTasksInstance) sortableTasksInstance.destroy();
+            sortableTasksInstance = new Sortable(taskList, {
+                handle: '.drag-handle',
+                animation: 200,
+                delay: 100,
+                delayOnTouchOnly: true,
+                onEnd: function (evt) {
+                    const activeList = getActiveList();
+                    if (!activeList) return;
+                    
+                    const oldIndex = evt.oldIndex;
+                    const newIndex = evt.newIndex;
+                    
+                    if (oldIndex !== newIndex) {
+                        const [movedTask] = activeList.tasks.splice(oldIndex, 1);
+                        activeList.tasks.splice(newIndex, 0, movedTask);
                         saveData();
                         renderTasks();
                     }
-                }));
-            }
+                }
+            });
         }
 
         // Direct Drag & Drop for Tabs
@@ -1080,10 +984,13 @@
                     evt.item.dataset.dragging = "true";
                 },
                 onEnd: function (evt) {
-                    setTimeout(() => { evt.item.dataset.dragging = "false"; }, 50);
+                    setTimeout(() => {
+                        evt.item.dataset.dragging = "false";
+                    }, 50);
 
                     const oldIndex = evt.oldIndex;
                     const newIndex = evt.newIndex;
+                    
                     if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
                         const [movedList] = lists.splice(oldIndex, 1);
                         lists.splice(newIndex, 0, movedList);
@@ -1096,13 +1003,16 @@
         function addTask() {
             const text = taskInput.value.trim();
             if (text === '') return;
+            
             const activeList = getActiveList();
             if (!activeList) return;
 
             let taskTime = 0;
-            if (activeList.type === 'timed') taskTime = Number(taskTimeInput.value) || 5; 
+            if (activeList.type === 'timed') {
+                taskTime = Number(taskTimeInput.value) || 5; 
+            }
 
-            activeList.tasks.push({ 
+            const newTask = { 
                 id: activeList.nextTaskId++, 
                 text: text, 
                 time: taskTime, 
@@ -1110,35 +1020,18 @@
                 status: activeList.type === 'shopping' ? 'out_of_stock' : 'in_stock',
                 dose: activeList.type === 'pill' ? (pillDoseInput.value.trim() || '1 pill') : '',
                 section: activeList.type === 'pill' ? pillTimeSelect.value : ''
-            });
+            };
 
-            taskInput.value = ''; taskTimeInput.value = ''; pillDoseInput.value = '';
-            saveData(); renderTasks(); renderTabs(); updateInputAreaState();
-            taskContainer.scrollTop = taskContainer.scrollHeight;
-        }
+            activeList.tasks.push(newTask);
 
-        function addPlannerTask(section, timerKey) {
-            const textInput = document.getElementById(`input-text-${timerKey}`);
-            const timeInput = document.getElementById(`input-time-${timerKey}`);
-            const text = textInput.value.trim();
-            if (text === '') return;
-
-            const activeList = getActiveList();
-            const taskTime = Number(timeInput.value) || 5;
-
-            activeList.tasks.push({
-                id: activeList.nextTaskId++,
-                text: text,
-                time: taskTime,
-                completed: false,
-                section: section
-            });
-
-            textInput.value = '';
-            timeInput.value = '';
-            saveData();
+            taskInput.value = ''; 
+            taskTimeInput.value = '';
+            pillDoseInput.value = '';
+            saveData(); 
             renderTasks();
+            renderTabs();
             updateInputAreaState();
+            taskContainer.scrollTop = taskContainer.scrollHeight;
         }
 
         function toggleTask(id) {
@@ -1148,30 +1041,27 @@
             if (task) {
                 if (activeList.type === 'shopping') {
                     const currentStatus = task.status || 'in_stock';
-                    if (currentStatus === 'in_stock') task.status = 'low';
-                    else if (currentStatus === 'low') task.status = 'out_of_stock';
-                    else task.status = 'in_stock';
+                    if (currentStatus === 'in_stock') {
+                        task.status = 'low';
+                    } else if (currentStatus === 'low') {
+                        task.status = 'out_of_stock';
+                    } else {
+                        task.status = 'in_stock';
+                    }
                 } else {
                     task.completed = !task.completed;
-                    
                     if (activeList.type === 'timed') {
                         timerTotalSeconds = calculateTotalSeconds(activeList);
-                        if (timerSecondsRemaining > timerTotalSeconds) timerSecondsRemaining = timerTotalSeconds;
-                        timerDisplay.textContent = formatTime(timerSecondsRemaining);
-                    } else if (activeList.type === 'planner') {
-                        const sec = task.section;
-                        const timerKey = `${activeList.id}_${sec}`;
-                        if (sectionTimers[timerKey]) {
-                            const newTotal = calculateTotalSeconds(activeList, sec);
-                            if (sectionTimers[timerKey].remaining > newTotal) {
-                                sectionTimers[timerKey].remaining = newTotal;
-                                const display = document.getElementById(`display-${timerKey}`);
-                                if (display) display.textContent = formatTime(sectionTimers[timerKey].remaining);
-                            }
+                        if (timerSecondsRemaining > timerTotalSeconds) {
+                            timerSecondsRemaining = timerTotalSeconds;
                         }
+                        timerDisplay.textContent = formatTime(timerSecondsRemaining);
                     }
                 }
-                saveData(); renderTasks(); renderTabs();
+
+                saveData(); 
+                renderTasks();
+                renderTabs();
             }
         }
 
@@ -1179,7 +1069,10 @@
             const activeList = getActiveList();
             if (!activeList) return;
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
-            saveData(); renderTasks(); renderTabs(); updateInputAreaState();
+            saveData(); 
+            renderTasks();
+            renderTabs();
+            updateInputAreaState();
         }
 
         function openEditTimeModal(taskId) {
@@ -1201,10 +1094,16 @@
             }
 
             editTimeModal.classList.remove('hidden');
-            setTimeout(() => { editTimeInput.focus(); editTimeInput.select(); }, 100);
+            setTimeout(() => {
+                editTimeInput.focus();
+                editTimeInput.select();
+            }, 100);
         }
 
-        function closeEditTimeModal() { editTimeModal.classList.add('hidden'); editingTaskId = null; }
+        function closeEditTimeModal() {
+            editTimeModal.classList.add('hidden');
+            editingTaskId = null;
+        }
 
         function saveTaskTime() {
             if (editingTaskId === null) return;
@@ -1217,7 +1116,10 @@
                     const newTime = Number(editTimeInput.value);
                     task.time = isNaN(newTime) || newTime < 0 ? 0 : newTime;
                 }
-                saveData(); renderTasks(); renderTabs(); updateInputAreaState();
+                saveData();
+                renderTasks();
+                renderTabs();
+                updateInputAreaState();
             }
             closeEditTimeModal();
         }
@@ -1225,26 +1127,82 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
+            // 1. New Lists Optgroup
             const newListsGroup = document.createElement('optgroup');
             newListsGroup.label = "── LISTS ──";
-            newListsGroup.innerHTML = `
-                <option value="cat_timed">Timed Task List</option>
-                <option value="cat_simple">Simple Task List</option>
-                <option value="cat_shopping">Shopping List</option>
-            `;
+
+            const optTimed = document.createElement('option');
+            optTimed.value = 'cat_timed';
+            optTimed.textContent = 'Timed Task List';
+
+            const optSimple = document.createElement('option');
+            optSimple.value = 'cat_simple';
+            optSimple.textContent = 'Simple Task List';
+
+            const optShopping = document.createElement('option');
+            optShopping.value = 'cat_shopping';
+            optShopping.textContent = 'Shopping List';
+
+            newListsGroup.appendChild(optTimed);
+            newListsGroup.appendChild(optSimple);
+            newListsGroup.appendChild(optShopping);
             newTabSelect.appendChild(newListsGroup);
 
-            const plannersGroup = document.createElement('optgroup');
-            plannersGroup.label = "── PLANNERS ──";
-            plannersGroup.innerHTML = `<option value="cat_planner">Daily Planner</option>`;
-            newTabSelect.appendChild(plannersGroup);
-
+            // 2. Trackers Optgroup
             const trackersGroup = document.createElement('optgroup');
             trackersGroup.label = "── TRACKERS ──";
-            trackersGroup.innerHTML = `<option value="cat_pill">Pill Tracker</option>`;
+
+            const optPill = document.createElement('option');
+            optPill.value = 'cat_pill';
+            optPill.textContent = 'Pill Tracker';
+            trackersGroup.appendChild(optPill);
             newTabSelect.appendChild(trackersGroup);
 
-            newTabSelect.value = 'cat_timed';
+            // 3. Presets Optgroup
+            const presetsGroup = document.createElement('optgroup');
+            presetsGroup.label = "── PRESETS ──";
+
+            const hasCleaning = lists.some(l => l.name === 'Cleaning');
+            const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
+            const hasGroceries = lists.some(l => l.name === 'Groceries');
+            const hasHousehold = lists.some(l => l.name === 'Household');
+            const hasPillPreset = lists.some(l => l.name === 'Pills Preset');
+
+            if (!hasCleaning) {
+                const opt = document.createElement('option');
+                opt.value = 'Cleaning';
+                opt.textContent = 'Clean Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasDeepClean) {
+                const opt = document.createElement('option');
+                opt.value = 'Deep Clean';
+                opt.textContent = 'Deep Clean Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasGroceries) {
+                const opt = document.createElement('option');
+                opt.value = 'Groceries';
+                opt.textContent = 'Groceries Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasHousehold) {
+                const opt = document.createElement('option');
+                opt.value = 'Household';
+                opt.textContent = 'Household Preset';
+                presetsGroup.appendChild(opt);
+            }
+            if (!hasPillPreset) {
+                const opt = document.createElement('option');
+                opt.value = 'Pills Preset';
+                opt.textContent = 'Pill Tracker Preset';
+                presetsGroup.appendChild(opt);
+            }
+
+            if (presetsGroup.children.length > 0) {
+                newTabSelect.appendChild(presetsGroup);
+            }
+
             handleNewTabSelectChange();
             newTabModal.classList.remove('hidden');
         }
@@ -1260,22 +1218,52 @@
             }
         }
 
-        function closeNewTabModal() { newTabModal.classList.add('hidden'); }
+        function closeNewTabModal() { 
+            newTabModal.classList.add('hidden'); 
+        }
 
         function createNewTab() {
-            let name = newTabInput.value.trim();
-            if (name === '') return;
-            
+            let name = '';
+            let initialTasks = [];
             let listType = 'timed';
             const val = newTabSelect.value;
-            
-            if (val === 'cat_timed') listType = 'timed';
-            else if (val === 'cat_shopping') listType = 'shopping';
-            else if (val === 'cat_pill') listType = 'pill';
-            else if (val === 'cat_planner') listType = 'planner';
-            else listType = 'standard';
 
-            const newList = { id: nextListId++, name: name, type: listType, tasks: [], nextTaskId: 1 };
+            if (val.startsWith('cat_')) {
+                name = newTabInput.value.trim();
+                if (name === '') return;
+
+                if (val === 'cat_timed') {
+                    listType = 'timed';
+                } else if (val === 'cat_shopping') {
+                    listType = 'shopping';
+                } else if (val === 'cat_pill') {
+                    listType = 'pill';
+                    initialTasks = []; // Empty pill tracker
+                } else {
+                    listType = 'standard';
+                }
+            } else {
+                name = val;
+                if (name === 'Cleaning') {
+                    initialTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
+                } else if (name === 'Deep Clean') {
+                    initialTasks = defaultDeepClean.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+                    listType = 'timed';
+                } else if (name === 'Groceries') {
+                    initialTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
+                } else if (name === 'Household') {
+                    initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+                    listType = 'shopping';
+                } else if (name === 'Pills Preset') {
+                    initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
+                    listType = 'pill';
+                }
+            }
+
+            const nextTId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
+            const newList = { id: nextListId++, name: name, type: listType, tasks: initialTasks, nextTaskId: nextTId };
             
             lists.push(newList);
             activeListId = newList.id;
@@ -1298,33 +1286,59 @@
         function saveEditTab() {
             const newName = editTabInput.value.trim();
             if (newName === '') return;
-            getActiveList().name = newName;
-            saveData(); closeEditTabModal(); renderTabs();
+            const activeList = getActiveList();
+            activeList.name = newName;
+            saveData();
+            closeEditTabModal();
+            renderTabs();
         }
         function deleteCurrentTab() {
             if (lists.length <= 1) return;
             lists = lists.filter(l => l.id !== activeListId);
             activeListId = lists[0].id;
-            saveData(); closeEditTabModal(); renderTabs(); renderTasks(); updateInputAreaState();
+            saveData();
+            closeEditTabModal();
+            renderTabs();
+            renderTasks();
+            updateInputAreaState();
         }
 
         // SWIPE GESTURE CONTROLLER FOR TABS
-        let touchStartX = 0; let touchStartY = 0; let touchCurrentX = 0; let touchCurrentY = 0; let isSwiping = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchCurrentX = 0;
+        let touchCurrentY = 0;
+        let isSwiping = false;
 
         taskContainer.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('input')) { isSwiping = false; return; }
-            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY;
-            touchCurrentX = touchStartX; touchCurrentY = touchStartY;
-            isSwiping = true; taskContainer.classList.add('swiping');
+            if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('input')) {
+                isSwiping = false;
+                return;
+            }
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchCurrentX = touchStartX;
+            touchCurrentY = touchStartY;
+            isSwiping = true;
+            taskContainer.classList.add('swiping');
         }, { passive: true });
 
         taskContainer.addEventListener('touchmove', (e) => {
             if (!isSwiping) return;
-            touchCurrentX = e.touches[0].clientX; touchCurrentY = e.touches[0].clientY;
-            const diffX = touchCurrentX - touchStartX; const diffY = touchCurrentY - touchStartY;
+            touchCurrentX = e.touches[0].clientX;
+            touchCurrentY = e.touches[0].clientY;
+
+            const diffX = touchCurrentX - touchStartX;
+            const diffY = touchCurrentY - touchStartY;
+
             if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
-                isSwiping = false; taskContainer.style.transform = ''; taskContainer.style.opacity = ''; taskContainer.classList.remove('swiping'); return;
+                isSwiping = false;
+                taskContainer.style.transform = '';
+                taskContainer.style.opacity = '';
+                taskContainer.classList.remove('swiping');
+                return;
             }
+
             if (Math.abs(diffX) > 10) {
                 taskContainer.style.transform = `translateX(${diffX * 0.4}px)`;
                 taskContainer.style.opacity = `${1 - Math.abs(diffX) / 600}`;
@@ -1333,17 +1347,28 @@
 
         taskContainer.addEventListener('touchend', () => {
             if (!isSwiping) return;
-            isSwiping = false; taskContainer.classList.remove('swiping');
-            const diffX = touchCurrentX - touchStartX; const threshold = 60;
+            isSwiping = false;
+            taskContainer.classList.remove('swiping');
+
+            const diffX = touchCurrentX - touchStartX;
+            const threshold = 60;
+
             if (diffX < -threshold) {
                 const currentIndex = lists.findIndex(l => l.id === activeListId);
-                if (currentIndex < lists.length - 1) switchTab(lists[currentIndex + 1].id);
-                else openNewTabModal();
+                if (currentIndex < lists.length - 1) {
+                    switchTab(lists[currentIndex + 1].id);
+                } else {
+                    openNewTabModal();
+                }
             } else if (diffX > threshold) {
                 const currentIndex = lists.findIndex(l => l.id === activeListId);
-                if (currentIndex > 0) switchTab(lists[currentIndex - 1].id);
+                if (currentIndex > 0) {
+                    switchTab(lists[currentIndex - 1].id);
+                }
             }
-            taskContainer.style.transform = ''; taskContainer.style.opacity = '';
+
+            taskContainer.style.transform = '';
+            taskContainer.style.opacity = '';
         });
 
         // Event Listeners
@@ -1366,6 +1391,7 @@
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
+        // Edit Time / Dose Modal Listeners
         document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
         editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
@@ -1375,6 +1401,7 @@
         renderTasks();
         initSortableTasks();
         updateInputAreaState();
+
     </script>
 </body>
 </html>
