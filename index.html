@@ -367,7 +367,7 @@
         let lists = [];
         let activeListId = 1;
         let nextListId = 4;
-        let sortableTasksInstances = []; // Changed to array for planner multi-lists
+        let sortableTasksInstances = []; 
         let sortableTabsInstance = null;
 
         // Global Timer State
@@ -377,7 +377,7 @@
         let isTimerRunning = false;
 
         // Planner Timers State
-        let plannerTimers = {}; // e.g. { "1_morning": { elapsed: 0, isRunning: false, intervalId: null } }
+        let plannerTimers = {}; 
 
         let editingTaskId = null;
 
@@ -385,12 +385,10 @@
         function isPillOverdue(task) {
             if (task.completed) return false;
             
-            const currentHour = new Date().getHours(); // 0 to 23
+            const currentHour = new Date().getHours(); 
             const section = task.section || 'morning';
 
-            // Morning window: 0:00 - 11:59 (overdue from 12:00 onwards)
             if (section === 'morning' && currentHour >= 12) return true;
-            // Day window: 12:00 - 17:59 (overdue from 18:00 onwards)
             if (section === 'day' && currentHour >= 18) return true;
             
             return false;
@@ -417,7 +415,6 @@
             }
         }
 
-        // Periodically refresh UI to check time status automatically
         setInterval(() => {
             checkAndResetPillTrackers();
             const activeList = getActiveList();
@@ -452,7 +449,6 @@
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
-            // Default setup
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
@@ -484,14 +480,12 @@
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
         
-        // Timer Elements
         const timerContainer = document.getElementById('timer-container');
         const timerDisplay = document.getElementById('timer-display');
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
         const timerStopBtn = document.getElementById('timer-stop-btn');
         const uncheckAllBtn = document.getElementById('uncheck-all-btn');
 
-        // Modals
         const newTabModal = document.getElementById('new-tab-modal');
         const newTabSelect = document.getElementById('new-tab-select');
         const newTabInput = document.getElementById('new-tab-input');
@@ -500,7 +494,6 @@
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
 
-        // Edit Time / Dose Modal Elements
         const editTimeModal = document.getElementById('edit-time-modal');
         const editModalTitle = document.getElementById('edit-modal-title');
         const editTimeTaskName = document.getElementById('edit-time-task-name');
@@ -534,7 +527,7 @@
         }
 
         function stopAllTimers() {
-            pauseTimer(); // Global timer
+            pauseTimer();
             Object.values(plannerTimers).forEach(timer => {
                 if (timer.isRunning) {
                     timer.isRunning = false;
@@ -546,7 +539,6 @@
         function updateInputAreaState() {
             const activeList = getActiveList();
             
-            // Hide all specialized inputs first
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
             pillTimeWrapper.classList.add('hidden');
@@ -586,7 +578,6 @@
             }
         }
 
-        // --- GLOBAL TIMER FUNCTIONS ---
         function toggleTimer() {
             if (isTimerRunning) pauseTimer();
             else startTimer();
@@ -628,7 +619,6 @@
             }
         }
 
-        // --- PLANNER TIMER FUNCTIONS ---
         function togglePlannerTimer(section) {
             const activeList = getActiveList();
             const timer = getPlannerTimer(activeList.id, section);
@@ -644,7 +634,6 @@
                 timer.isRunning = true;
                 timer.intervalId = setInterval(() => {
                     timer.elapsed++;
-                    // Cap elapsed to total
                     const currentTotal = calculateTotalSeconds(activeList, section);
                     if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
                     
@@ -745,7 +734,6 @@
             const timer = getPlannerTimer(activeList.id, section);
             const activeTotalSecs = calculateTotalSeconds(activeList, section);
             
-            // Fix elapsed if it exceeds total
             if (timer.elapsed > activeTotalSecs) timer.elapsed = activeTotalSecs;
 
             const elapsedSecs = timer.elapsed;
@@ -797,7 +785,6 @@
                 }`;
                 btn.dataset.id = list.id;
                 
-                // Red indicator badge on tab if any pills inside are overdue
                 const badgeDotHtml = isOverduePillTab 
                     ? `<span class="w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm"></span>` 
                     : '';
@@ -825,7 +812,6 @@
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
-            // Auto-scroll active tab into view in header
             const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
             if (activeBtn) {
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -930,7 +916,6 @@
             const leftDiv = document.createElement('div');
             leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
-            // Drag Handle
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
             dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
@@ -940,7 +925,6 @@
             contentDiv.onclick = () => toggleTask(task.id);
 
             if (listType === 'shopping') {
-                // SHOPPING LIST SPECIFIC UI (3-State Badges)
                 const status = task.status || 'in_stock';
                 
                 let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
@@ -977,7 +961,6 @@
                 contentDiv.appendChild(badge);
                 contentDiv.appendChild(span);
             } else {
-                // STANDARD & TIMED & PLANNER TASK LIST UI
                 li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
 
                 const checkbox = document.createElement('div');
@@ -1038,7 +1021,6 @@
 
             if (activeList) {
                 if (activeList.type === 'pill') {
-                    // RENDER PILL TRACKER SECTIONS
                     const sections = [
                         { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
                         { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
@@ -1060,7 +1042,6 @@
                     });
 
                 } else if (activeList.type === 'planner') {
-                    // RENDER DAILY PLANNER BLOCKS
                     const blocks = [
                         { key: 'morning', title: 'Morning Block' },
                         { key: 'afternoon', title: 'Afternoon Block' },
@@ -1070,14 +1051,12 @@
                     blocks.forEach(block => {
                         const timer = getPlannerTimer(activeList.id, block.key);
                         const totalSecs = calculateTotalSeconds(activeList, block.key);
-                        // Fix elapsed bounds gracefully without throwing errors
                         if (timer.elapsed > totalSecs) timer.elapsed = totalSecs;
                         const remaining = Math.max(0, totalSecs - timer.elapsed);
 
                         const blockContainer = document.createElement('div');
                         blockContainer.className = 'mb-6 flex flex-col gap-2';
                         
-                        // Header & Timer
                         const header = document.createElement('div');
                         header.className = 'flex justify-between items-center mb-1 px-1';
                         header.innerHTML = `
@@ -1093,7 +1072,6 @@
                         `;
                         blockContainer.appendChild(header);
 
-                        // Dropzone for Sortable
                         const dropzone = document.createElement('ul');
                         dropzone.className = 'planner-dropzone flex flex-col gap-2 min-h-[10px] pb-1'; 
                         dropzone.dataset.section = block.key;
@@ -1104,7 +1082,6 @@
                         });
                         blockContainer.appendChild(dropzone);
 
-                        // Dedicated Input Block
                         const inputRow = document.createElement('div');
                         inputRow.className = 'flex gap-2 w-full mt-1 shrink-0 items-center';
                         inputRow.innerHTML = `
@@ -1115,7 +1092,6 @@
                             </button>
                         `;
 
-                        // Attach enter key events directly to these dynamic inputs
                         setTimeout(() => {
                             const tIn = document.getElementById(`planner-input-${block.key}`);
                             const mIn = document.getElementById(`planner-time-${block.key}`);
@@ -1127,7 +1103,6 @@
                         taskList.appendChild(blockContainer);
                     });
 
-                    // Update visuals for all planners after rendering
                     blocks.forEach(block => updatePlannerVisualGradients(block.key));
 
                 } else {
@@ -1141,7 +1116,6 @@
         }
 
         function initSortableTasks() {
-            // Clean up old instances (array for planners, single for others)
             if (sortableTasksInstances && sortableTasksInstances.length > 0) {
                 sortableTasksInstances.forEach(inst => inst.destroy());
             }
@@ -1167,7 +1141,6 @@
                             const task = activeList.tasks.find(t => t.id === taskId);
                             if (task) task.section = newSection; 
                             
-                            // Re-sort to match DOM array across all zones
                             const allNodes = Array.from(document.querySelectorAll('.planner-dropzone li[data-id]'));
                             activeList.tasks.sort((a, b) => {
                                 const aIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === a.id);
@@ -1203,7 +1176,6 @@
             }
         }
 
-        // Direct Drag & Drop for Tabs
         function initSortableTabs() {
             if (sortableTabsInstance) sortableTabsInstance.destroy();
             sortableTabsInstance = new Sortable(tabBar, {
@@ -1289,7 +1261,6 @@
             timeInput.value = '';
             saveData();
             renderTasks();
-            // Scroll to bottom of section isn't trivial since they are stacked, but re-render works gracefully.
         }
 
         function toggleTask(id) {
@@ -1307,8 +1278,19 @@
                         task.status = 'in_stock';
                     }
                 } else {
-                    task.completed = !task.completed;
+                    const wasCompleted = task.completed;
+                    task.completed = !wasCompleted;
+                    
                     if (activeList.type === 'timed') {
+                        const taskSecs = (Number(task.time) || 0) * 60;
+                        if (wasCompleted && !task.completed) {
+                            // Unchecking: add time back to timerSecondsRemaining
+                            timerSecondsRemaining += taskSecs;
+                        } else if (!wasCompleted && task.completed) {
+                            // Checking: subtract time
+                            timerSecondsRemaining = Math.max(0, timerSecondsRemaining - taskSecs);
+                        }
+                        
                         timerTotalSeconds = calculateTotalSeconds(activeList);
                         if (timerSecondsRemaining > timerTotalSeconds) {
                             timerSecondsRemaining = timerTotalSeconds;
@@ -1385,7 +1367,6 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
-            // 1. New Lists Optgroup
             const newListsGroup = document.createElement('optgroup');
             newListsGroup.label = "── LISTS ──";
 
@@ -1406,7 +1387,6 @@
             newListsGroup.appendChild(optShopping);
             newTabSelect.appendChild(newListsGroup);
 
-            // 2. Planners Optgroup
             const plannersGroup = document.createElement('optgroup');
             plannersGroup.label = "── PLANNERS ──";
             
@@ -1417,7 +1397,6 @@
             plannersGroup.appendChild(optPlanner);
             newTabSelect.appendChild(plannersGroup);
 
-            // 3. Trackers Optgroup
             const trackersGroup = document.createElement('optgroup');
             trackersGroup.label = "── TRACKERS ──";
 
@@ -1427,7 +1406,6 @@
             trackersGroup.appendChild(optPill);
             newTabSelect.appendChild(trackersGroup);
 
-            // 4. Presets Optgroup
             const presetsGroup = document.createElement('optgroup');
             presetsGroup.label = "── PRESETS ──";
 
@@ -1575,7 +1553,6 @@
             updateInputAreaState();
         }
 
-        // SWIPE GESTURE CONTROLLER FOR TABS
         let touchStartX = 0;
         let touchStartY = 0;
         let touchCurrentX = 0;
@@ -1643,7 +1620,6 @@
             taskContainer.style.opacity = '';
         });
 
-        // Event Listeners
         addBtn.addEventListener('click', addTask);
         taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         taskTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
@@ -1663,12 +1639,10 @@
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
-        // Edit Time / Dose Modal Listeners
         document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
         editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
 
-        // Initial render
         renderTabs();
         renderTasks();
         initSortableTasks();
