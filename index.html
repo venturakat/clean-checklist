@@ -370,21 +370,15 @@
         let sortableTasksInstances = []; 
         let sortableTabsInstance = null;
 
-        // Unified Timer Store (for standard timed lists and planner blocks)
         let listTimers = {}; 
-
         let editingTaskId = null;
 
-        // Time-Window Checker for Pills
         function isPillOverdue(task) {
             if (task.completed) return false;
-            
             const currentHour = new Date().getHours(); 
             const section = task.section || 'morning';
-
             if (section === 'morning' && currentHour >= 12) return true;
             if (section === 'day' && currentHour >= 18) return true;
-            
             return false;
         }
 
@@ -393,7 +387,6 @@
             return list.tasks.some(task => isPillOverdue(task));
         }
 
-        // Midnight Reset Tracker
         function checkAndResetPillTrackers() {
             const todayStr = new Date().toDateString();
             const lastResetDate = localStorage.getItem('cleanAppLastPillReset');
@@ -418,7 +411,6 @@
             renderTabs();
         }, 60000);
 
-        // Load or initialize data
         const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
         if (savedMultiData) {
             const parsed = JSON.parse(savedMultiData);
@@ -474,7 +466,6 @@
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
         
-        // Timer Elements
         const timerContainer = document.getElementById('timer-container');
         const timerDisplay = document.getElementById('timer-display');
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
@@ -482,7 +473,6 @@
         const uncheckAllBtn = document.getElementById('uncheck-all-btn');
         const globalTimerIcon = document.getElementById('global-timer-icon');
 
-        // Modals
         const newTabModal = document.getElementById('new-tab-modal');
         const newTabSelect = document.getElementById('new-tab-select');
         const newTabInput = document.getElementById('new-tab-input');
@@ -515,7 +505,6 @@
             return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
-        // Unifed Timer Engine Fetcher
         function getListTimer(key) {
             if (!listTimers[key]) {
                 listTimers[key] = { elapsed: 0, isRunning: false, intervalId: null };
@@ -575,7 +564,6 @@
             }
         }
 
-        // --- GLOBAL (STANDARD) TIMED LIST CONTROLS ---
         function toggleTimer() {
             const timer = getListTimer(activeListId);
             if (timer.isRunning) pauseTimer();
@@ -602,7 +590,6 @@
                 const cTotal = calculateTotalSeconds(activeList); 
                 if (timer.elapsed > cTotal) timer.elapsed = cTotal;
                 
-                // Only update the global UI if the user is still viewing this particular list
                 if (currentList.id === activeList.id) {
                     const remaining = Math.max(0, cTotal - timer.elapsed);
                     timerDisplay.textContent = formatTime(remaining);
@@ -653,7 +640,6 @@
             }
         }
 
-        // --- PLANNER TIMED BLOCK CONTROLS ---
         function togglePlannerTimer(section) {
             const activeList = getActiveList();
             const timer = getListTimer(`${activeList.id}_${section}`);
@@ -672,7 +658,6 @@
                     const currentTotal = calculateTotalSeconds(activeList, section);
                     if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
                     
-                    // Only update if still on this tab
                     if (getActiveList().id === activeList.id) {
                         const remaining = Math.max(0, currentTotal - timer.elapsed);
                         const display = document.getElementById(`planner-timer-${section}`);
@@ -711,7 +696,6 @@
                 }
             });
             
-            // Explicitly stop and reset elapsed times for the current list
             if (activeList.type === 'timed') {
                 const t = getListTimer(activeList.id);
                 t.isRunning = false;
@@ -732,6 +716,7 @@
             updateInputAreaState();
         }
 
+        // --- RESTORED SEAMLESS TASK-BY-TASK PROGRESS GRADIENT ENGINE ---
         function updateTaskVisualGradients() {
             const activeList = getActiveList();
             if (!activeList || activeList.type !== 'timed') return;
@@ -745,6 +730,9 @@
 
             let accumulatedSecs = 0;
             const liElements = taskList.querySelectorAll('li[data-id]');
+
+            // Filter to only active (uncompleted) tasks to calculate offset sequence
+            const activeUncompleted = activeList.tasks.filter(t => !t.completed);
 
             activeList.tasks.forEach((task) => {
                 const li = Array.from(liElements).find(el => el.dataset.id == task.id);
@@ -1586,7 +1574,6 @@
             updateInputAreaState();
         }
 
-        // SWIPE GESTURE CONTROLLER FOR TABS
         let touchStartX = 0;
         let touchStartY = 0;
         let touchCurrentX = 0;
@@ -1654,7 +1641,6 @@
             taskContainer.style.opacity = '';
         });
 
-        // Event Listeners
         addBtn.addEventListener('click', addTask);
         taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
         taskTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
@@ -1678,7 +1664,6 @@
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
         editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
 
-        // Initial render
         renderTabs();
         renderTasks();
         initSortableTasks();
