@@ -111,7 +111,7 @@
         <!-- Timer Bar (Only visible for timed lists) -->
         <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10 gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--destructive-text-color)] animate-pulse shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg id="global-timer-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--destructive-text-color)] shrink-0 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span id="timer-display" class="text-base font-mono font-bold tracking-tight truncate">00:00:00</span>
@@ -367,17 +367,11 @@
         let lists = [];
         let activeListId = 1;
         let nextListId = 4;
-        let sortableTasksInstances = []; // Changed to array for planner multi-lists
+        let sortableTasksInstances = []; 
         let sortableTabsInstance = null;
 
-        // Global Timer State
-        let timerTotalSeconds = 0;
-        let timerSecondsRemaining = 0;
-        let timerInterval = null;
-        let isTimerRunning = false;
-
-        // Planner Timers State
-        let plannerTimers = {}; // e.g. { "1_morning": { elapsed: 0, isRunning: false, intervalId: null } }
+        // Unified Timer Store (for standard timed lists and planner blocks)
+        let listTimers = {}; 
 
         let editingTaskId = null;
 
@@ -385,12 +379,10 @@
         function isPillOverdue(task) {
             if (task.completed) return false;
             
-            const currentHour = new Date().getHours(); // 0 to 23
+            const currentHour = new Date().getHours(); 
             const section = task.section || 'morning';
 
-            // Morning window: 0:00 - 11:59 (overdue from 12:00 onwards)
             if (section === 'morning' && currentHour >= 12) return true;
-            // Day window: 12:00 - 17:59 (overdue from 18:00 onwards)
             if (section === 'day' && currentHour >= 18) return true;
             
             return false;
@@ -417,7 +409,6 @@
             }
         }
 
-        // Periodically refresh UI to check time status automatically
         setInterval(() => {
             checkAndResetPillTrackers();
             const activeList = getActiveList();
@@ -452,7 +443,6 @@
             activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
             nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
         } else {
-            // Default setup
             const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
             const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
             const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
@@ -490,6 +480,7 @@
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
         const timerStopBtn = document.getElementById('timer-stop-btn');
         const uncheckAllBtn = document.getElementById('uncheck-all-btn');
+        const globalTimerIcon = document.getElementById('global-timer-icon');
 
         // Modals
         const newTabModal = document.getElementById('new-tab-modal');
@@ -500,7 +491,6 @@
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
 
-        // Edit Time / Dose Modal Elements
         const editTimeModal = document.getElementById('edit-time-modal');
         const editModalTitle = document.getElementById('edit-modal-title');
         const editTimeTaskName = document.getElementById('edit-time-task-name');
@@ -525,28 +515,17 @@
             return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
-        function getPlannerTimer(listId, section) {
-            const key = `${listId}_${section}`;
-            if (!plannerTimers[key]) {
-                plannerTimers[key] = { elapsed: 0, isRunning: false, intervalId: null };
+        // Unifed Timer Engine Fetcher
+        function getListTimer(key) {
+            if (!listTimers[key]) {
+                listTimers[key] = { elapsed: 0, isRunning: false, intervalId: null };
             }
-            return plannerTimers[key];
-        }
-
-        function stopAllTimers() {
-            pauseTimer(); // Global timer
-            Object.values(plannerTimers).forEach(timer => {
-                if (timer.isRunning) {
-                    timer.isRunning = false;
-                    clearInterval(timer.intervalId);
-                }
-            });
+            return listTimers[key];
         }
 
         function updateInputAreaState() {
             const activeList = getActiveList();
             
-            // Hide all specialized inputs first
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
             pillTimeWrapper.classList.add('hidden');
@@ -556,7 +535,6 @@
             if (activeList.type === 'planner') {
                 globalInputArea.classList.add('hidden');
                 globalInputArea.classList.remove('flex');
-                stopAllTimers();
             } else {
                 globalInputArea.classList.remove('hidden');
                 globalInputArea.classList.add('flex');
@@ -566,72 +544,119 @@
                     timerContainer.classList.remove('hidden');
                     timerContainer.classList.add('flex');
                     taskInput.placeholder = "Add a timed task...";
-                    timerTotalSeconds = calculateTotalSeconds(activeList);
-                    if (!isTimerRunning) {
-                        timerSecondsRemaining = timerTotalSeconds;
+                    
+                    const timer = getListTimer(activeList.id);
+                    const currentTotal = calculateTotalSeconds(activeList);
+                    
+                    if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
+                    const remaining = Math.max(0, currentTotal - timer.elapsed);
+                    timerDisplay.textContent = formatTime(remaining);
+                    
+                    if (timer.isRunning) {
+                        timerToggleBtn.textContent = 'Pause';
+                        timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+                        globalTimerIcon.classList.remove('hidden');
+                        globalTimerIcon.classList.add('animate-pulse');
+                    } else {
+                        timerToggleBtn.textContent = 'Start';
+                        timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+                        globalTimerIcon.classList.add('hidden');
+                        globalTimerIcon.classList.remove('animate-pulse');
                     }
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
                 } else if (activeList.type === 'pill') {
                     pillDoseInput.classList.remove('hidden');
                     pillTimeWrapper.classList.remove('hidden');
                     taskInput.placeholder = "Pill name...";
-                    stopAllTimers();
                 } else if (activeList.type === 'shopping') {
                     taskInput.placeholder = "Add item...";
-                    stopAllTimers();
                 } else {
                     taskInput.placeholder = "Add a task...";
-                    stopAllTimers();
                 }
             }
         }
 
-        // --- GLOBAL TIMER FUNCTIONS ---
+        // --- GLOBAL (STANDARD) TIMED LIST CONTROLS ---
         function toggleTimer() {
-            if (isTimerRunning) pauseTimer();
+            const timer = getListTimer(activeListId);
+            if (timer.isRunning) pauseTimer();
             else startTimer();
         }
 
         function startTimer() {
-            if (timerSecondsRemaining <= 0) return;
-            isTimerRunning = true;
+            const activeList = getActiveList();
+            const timer = getListTimer(activeList.id);
+            const currentTotal = calculateTotalSeconds(activeList);
+            
+            if (currentTotal - timer.elapsed <= 0) return;
+            
+            timer.isRunning = true;
             timerToggleBtn.textContent = 'Pause';
             timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+            globalTimerIcon.classList.remove('hidden');
+            globalTimerIcon.classList.add('animate-pulse');
             
-            timerInterval = setInterval(() => {
-                if (timerSecondsRemaining > 0) {
-                    timerSecondsRemaining--;
-                    timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            timer.intervalId = setInterval(() => {
+                const currentList = getActiveList();
+                
+                timer.elapsed++;
+                const cTotal = calculateTotalSeconds(activeList); 
+                if (timer.elapsed > cTotal) timer.elapsed = cTotal;
+                
+                // Only update the global UI if the user is still viewing this particular list
+                if (currentList.id === activeList.id) {
+                    const remaining = Math.max(0, cTotal - timer.elapsed);
+                    timerDisplay.textContent = formatTime(remaining);
                     updateTaskVisualGradients();
-                } else {
-                    stopTimer();
+                }
+                
+                if (timer.elapsed >= cTotal) {
+                    timer.isRunning = false;
+                    clearInterval(timer.intervalId);
+                    if (currentList.id === activeList.id) {
+                        timerToggleBtn.textContent = 'Start';
+                        timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+                        globalTimerIcon.classList.add('hidden');
+                        globalTimerIcon.classList.remove('animate-pulse');
+                    }
                     alert('Time is up! Great job.');
                 }
             }, 1000);
         }
 
         function pauseTimer() {
-            isTimerRunning = false;
-            clearInterval(timerInterval);
+            const timer = getListTimer(activeListId);
+            timer.isRunning = false;
+            clearInterval(timer.intervalId);
+            
             timerToggleBtn.textContent = 'Start';
             timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+            globalTimerIcon.classList.add('hidden');
+            globalTimerIcon.classList.remove('animate-pulse');
         }
 
         function stopTimer() {
-            pauseTimer();
+            const timer = getListTimer(activeListId);
+            timer.isRunning = false;
+            clearInterval(timer.intervalId);
+            timer.elapsed = 0;
+            
+            timerToggleBtn.textContent = 'Start';
+            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+            globalTimerIcon.classList.add('hidden');
+            globalTimerIcon.classList.remove('animate-pulse');
+            
             const activeList = getActiveList();
-            if (activeList.type === 'timed') {
-                timerTotalSeconds = calculateTotalSeconds(activeList);
-                timerSecondsRemaining = timerTotalSeconds;
-                timerDisplay.textContent = formatTime(timerSecondsRemaining);
+            if (activeList && activeList.type === 'timed') {
+                const currentTotal = calculateTotalSeconds(activeList);
+                timerDisplay.textContent = formatTime(currentTotal);
                 updateTaskVisualGradients();
             }
         }
 
-        // --- PLANNER TIMER FUNCTIONS ---
+        // --- PLANNER TIMED BLOCK CONTROLS ---
         function togglePlannerTimer(section) {
             const activeList = getActiveList();
-            const timer = getPlannerTimer(activeList.id, section);
+            const timer = getListTimer(`${activeList.id}_${section}`);
             
             if (timer.isRunning) {
                 timer.isRunning = false;
@@ -644,20 +669,21 @@
                 timer.isRunning = true;
                 timer.intervalId = setInterval(() => {
                     timer.elapsed++;
-                    // Cap elapsed to total
                     const currentTotal = calculateTotalSeconds(activeList, section);
                     if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
                     
-                    const remaining = Math.max(0, currentTotal - timer.elapsed);
-                    const display = document.getElementById(`planner-timer-${section}`);
-                    if (display) display.textContent = formatTime(remaining);
+                    // Only update if still on this tab
+                    if (getActiveList().id === activeList.id) {
+                        const remaining = Math.max(0, currentTotal - timer.elapsed);
+                        const display = document.getElementById(`planner-timer-${section}`);
+                        if (display) display.textContent = formatTime(remaining);
+                        updatePlannerVisualGradients(section);
+                    }
                     
-                    updatePlannerVisualGradients(section);
-                    
-                    if (remaining <= 0) {
+                    if (timer.elapsed >= currentTotal) {
                         timer.isRunning = false;
                         clearInterval(timer.intervalId);
-                        renderTasks();
+                        if (getActiveList().id === activeList.id) renderTasks();
                         alert(`Time's up for the ${section} block!`);
                     }
                 }, 1000);
@@ -667,7 +693,7 @@
 
         function resetPlannerTimer(section) {
             const activeList = getActiveList();
-            const timer = getPlannerTimer(activeList.id, section);
+            const timer = getListTimer(`${activeList.id}_${section}`);
             timer.isRunning = false;
             clearInterval(timer.intervalId);
             timer.elapsed = 0;
@@ -684,12 +710,19 @@
                     t.status = 'in_stock';
                 }
             });
-            stopAllTimers();
             
-            if (activeList.type === 'planner') {
+            // Explicitly stop and reset elapsed times for the current list
+            if (activeList.type === 'timed') {
+                const t = getListTimer(activeList.id);
+                t.isRunning = false;
+                clearInterval(t.intervalId);
+                t.elapsed = 0;
+            } else if (activeList.type === 'planner') {
                 ['morning', 'afternoon', 'evening'].forEach(sec => {
-                    const timer = getPlannerTimer(activeList.id, sec);
-                    timer.elapsed = 0;
+                    const t = getListTimer(`${activeList.id}_${sec}`);
+                    t.isRunning = false;
+                    clearInterval(t.intervalId);
+                    t.elapsed = 0;
                 });
             }
 
@@ -705,8 +738,11 @@
 
             const activeTotalSecs = calculateTotalSeconds(activeList);
             if (activeTotalSecs <= 0) return;
+            
+            const timer = getListTimer(activeList.id);
+            if (timer.elapsed > activeTotalSecs) timer.elapsed = activeTotalSecs;
+            const elapsedSecs = timer.elapsed;
 
-            const elapsedSecs = Math.max(0, activeTotalSecs - timerSecondsRemaining);
             let accumulatedSecs = 0;
             const liElements = taskList.querySelectorAll('li[data-id]');
 
@@ -725,7 +761,7 @@
                 accumulatedSecs += taskDurationSecs;
                 const taskEndSecs = accumulatedSecs;
 
-                if (isTimerRunning && elapsedSecs >= taskStartSecs) {
+                if (timer.isRunning && elapsedSecs >= taskStartSecs) {
                     const taskProgress = Math.min(1, Math.max(0, (elapsedSecs - taskStartSecs) / Math.max(1, (taskEndSecs - taskStartSecs))));
                     if (taskProgress > 0) {
                         li.style.background = `linear-gradient(to right, rgba(239, 68, 68, 0.45) ${taskProgress * 100}%, var(--secondary-bg-color) ${taskProgress * 100}%)`;
@@ -742,12 +778,10 @@
             const activeList = getActiveList();
             if (!activeList || activeList.type !== 'planner') return;
 
-            const timer = getPlannerTimer(activeList.id, section);
+            const timer = getListTimer(`${activeList.id}_${section}`);
             const activeTotalSecs = calculateTotalSeconds(activeList, section);
             
-            // Fix elapsed if it exceeds total
             if (timer.elapsed > activeTotalSecs) timer.elapsed = activeTotalSecs;
-
             const elapsedSecs = timer.elapsed;
             let accumulatedSecs = 0;
             
@@ -797,7 +831,6 @@
                 }`;
                 btn.dataset.id = list.id;
                 
-                // Red indicator badge on tab if any pills inside are overdue
                 const badgeDotHtml = isOverduePillTab 
                     ? `<span class="w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm"></span>` 
                     : '';
@@ -825,7 +858,6 @@
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
-            // Auto-scroll active tab into view in header
             const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
             if (activeBtn) {
                 activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
@@ -930,7 +962,6 @@
             const leftDiv = document.createElement('div');
             leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
-            // Drag Handle
             const dragHandle = document.createElement('div');
             dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
             dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
@@ -940,7 +971,6 @@
             contentDiv.onclick = () => toggleTask(task.id);
 
             if (listType === 'shopping') {
-                // SHOPPING LIST SPECIFIC UI (3-State Badges)
                 const status = task.status || 'in_stock';
                 
                 let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
@@ -977,7 +1007,6 @@
                 contentDiv.appendChild(badge);
                 contentDiv.appendChild(span);
             } else {
-                // STANDARD & TIMED & PLANNER TASK LIST UI
                 li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
 
                 const checkbox = document.createElement('div');
@@ -1038,7 +1067,6 @@
 
             if (activeList) {
                 if (activeList.type === 'pill') {
-                    // RENDER PILL TRACKER SECTIONS
                     const sections = [
                         { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
                         { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
@@ -1060,7 +1088,6 @@
                     });
 
                 } else if (activeList.type === 'planner') {
-                    // RENDER DAILY PLANNER BLOCKS
                     const blocks = [
                         { key: 'morning', title: 'Morning Block' },
                         { key: 'afternoon', title: 'Afternoon Block' },
@@ -1068,16 +1095,15 @@
                     ];
 
                     blocks.forEach(block => {
-                        const timer = getPlannerTimer(activeList.id, block.key);
+                        const timer = getListTimer(`${activeList.id}_${block.key}`);
                         const totalSecs = calculateTotalSeconds(activeList, block.key);
-                        // Fix elapsed bounds gracefully without throwing errors
+                        
                         if (timer.elapsed > totalSecs) timer.elapsed = totalSecs;
                         const remaining = Math.max(0, totalSecs - timer.elapsed);
 
                         const blockContainer = document.createElement('div');
                         blockContainer.className = 'mb-6 flex flex-col gap-2';
                         
-                        // Header & Timer
                         const header = document.createElement('div');
                         header.className = 'flex justify-between items-center mb-1 px-1';
                         header.innerHTML = `
@@ -1093,7 +1119,6 @@
                         `;
                         blockContainer.appendChild(header);
 
-                        // Dropzone for Sortable
                         const dropzone = document.createElement('ul');
                         dropzone.className = 'planner-dropzone flex flex-col gap-2 min-h-[10px] pb-1'; 
                         dropzone.dataset.section = block.key;
@@ -1104,7 +1129,6 @@
                         });
                         blockContainer.appendChild(dropzone);
 
-                        // Dedicated Input Block
                         const inputRow = document.createElement('div');
                         inputRow.className = 'flex gap-2 w-full mt-1 shrink-0 items-center';
                         inputRow.innerHTML = `
@@ -1115,7 +1139,6 @@
                             </button>
                         `;
 
-                        // Attach enter key events directly to these dynamic inputs
                         setTimeout(() => {
                             const tIn = document.getElementById(`planner-input-${block.key}`);
                             const mIn = document.getElementById(`planner-time-${block.key}`);
@@ -1127,7 +1150,6 @@
                         taskList.appendChild(blockContainer);
                     });
 
-                    // Update visuals for all planners after rendering
                     blocks.forEach(block => updatePlannerVisualGradients(block.key));
 
                 } else {
@@ -1141,7 +1163,6 @@
         }
 
         function initSortableTasks() {
-            // Clean up old instances (array for planners, single for others)
             if (sortableTasksInstances && sortableTasksInstances.length > 0) {
                 sortableTasksInstances.forEach(inst => inst.destroy());
             }
@@ -1167,7 +1188,6 @@
                             const task = activeList.tasks.find(t => t.id === taskId);
                             if (task) task.section = newSection; 
                             
-                            // Re-sort to match DOM array across all zones
                             const allNodes = Array.from(document.querySelectorAll('.planner-dropzone li[data-id]'));
                             activeList.tasks.sort((a, b) => {
                                 const aIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === a.id);
@@ -1203,7 +1223,6 @@
             }
         }
 
-        // Direct Drag & Drop for Tabs
         function initSortableTabs() {
             if (sortableTabsInstance) sortableTabsInstance.destroy();
             sortableTabsInstance = new Sortable(tabBar, {
@@ -1289,7 +1308,6 @@
             timeInput.value = '';
             saveData();
             renderTasks();
-            // Scroll to bottom of section isn't trivial since they are stacked, but re-render works gracefully.
         }
 
         function toggleTask(id) {
@@ -1308,18 +1326,15 @@
                     }
                 } else {
                     task.completed = !task.completed;
-                    if (activeList.type === 'timed') {
-                        timerTotalSeconds = calculateTotalSeconds(activeList);
-                        if (timerSecondsRemaining > timerTotalSeconds) {
-                            timerSecondsRemaining = timerTotalSeconds;
-                        }
-                        timerDisplay.textContent = formatTime(timerSecondsRemaining);
-                    }
                 }
 
                 saveData(); 
                 renderTasks();
                 renderTabs();
+                
+                if (activeList.type === 'timed') {
+                    updateInputAreaState();
+                }
             }
         }
 
@@ -1385,7 +1400,6 @@
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
-            // 1. New Lists Optgroup
             const newListsGroup = document.createElement('optgroup');
             newListsGroup.label = "── LISTS ──";
 
@@ -1406,7 +1420,6 @@
             newListsGroup.appendChild(optShopping);
             newTabSelect.appendChild(newListsGroup);
 
-            // 2. Planners Optgroup
             const plannersGroup = document.createElement('optgroup');
             plannersGroup.label = "── PLANNERS ──";
             
@@ -1417,7 +1430,6 @@
             plannersGroup.appendChild(optPlanner);
             newTabSelect.appendChild(plannersGroup);
 
-            // 3. Trackers Optgroup
             const trackersGroup = document.createElement('optgroup');
             trackersGroup.label = "── TRACKERS ──";
 
@@ -1427,7 +1439,6 @@
             trackersGroup.appendChild(optPill);
             newTabSelect.appendChild(trackersGroup);
 
-            // 4. Presets Optgroup
             const presetsGroup = document.createElement('optgroup');
             presetsGroup.label = "── PRESETS ──";
 
@@ -1663,7 +1674,6 @@
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
         editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
 
-        // Edit Time / Dose Modal Listeners
         document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
         editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
