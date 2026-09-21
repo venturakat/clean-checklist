@@ -100,7 +100,7 @@
         <!-- Header -->
         <header class="py-2 shrink-0">
             <h1 class="text-2xl font-bold">Start Tomorrow</h1>
-            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’t.</p>
+            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’ t.</p>
         </header>
 
         <!-- Tabs Area (Drag & Drop Enabled) -->
@@ -202,6 +202,17 @@
                 </select>
             </div>
 
+            <!-- Planner Date Dropdown (Shown only for Daily Planner) -->
+            <div id="new-tab-date-wrapper" class="hidden custom-select-wrapper w-full">
+                <select 
+                    id="new-tab-date-select" 
+                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-[var(--hint-color)] border-opacity-20 font-medium"
+                >
+                    <!-- Options generated via JS -->
+                </select>
+            </div>
+
+            <!-- Custom Tab Name Input (Shown for normal lists) -->
             <input 
                 type="text" 
                 id="new-tab-input" 
@@ -476,6 +487,8 @@
         const newTabModal = document.getElementById('new-tab-modal');
         const newTabSelect = document.getElementById('new-tab-select');
         const newTabInput = document.getElementById('new-tab-input');
+        const newTabDateWrapper = document.getElementById('new-tab-date-wrapper');
+        const newTabDateSelect = document.getElementById('new-tab-date-select');
         
         const editTabModal = document.getElementById('edit-tab-modal');
         const editTabInput = document.getElementById('edit-tab-input');
@@ -716,7 +729,6 @@
             updateInputAreaState();
         }
 
-        // --- RESTORED SEAMLESS TASK-BY-TASK PROGRESS GRADIENT ENGINE ---
         function updateTaskVisualGradients() {
             const activeList = getActiveList();
             if (!activeList || activeList.type !== 'timed') return;
@@ -730,9 +742,6 @@
 
             let accumulatedSecs = 0;
             const liElements = taskList.querySelectorAll('li[data-id]');
-
-            // Filter to only active (uncompleted) tasks to calculate offset sequence
-            const activeUncompleted = activeList.tasks.filter(t => !t.completed);
 
             activeList.tasks.forEach((task) => {
                 const li = Array.from(liElements).find(el => el.dataset.id == task.id);
@@ -1385,6 +1394,24 @@
             closeEditTimeModal();
         }
 
+        function populatePlannerDateOptions() {
+            newTabDateSelect.innerHTML = '';
+            const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            
+            // Generate next 14 days starting from today
+            for (let i = 0; i < 14; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() + i);
+                const dayName = daysOfWeek[d.getDay()];
+                const dayNum = d.getDate();
+                
+                const option = document.createElement('option');
+                option.value = `${dayName} ${dayNum}`; // e.g., "MON 21"
+                option.textContent = `${dayName} ${dayNum}`;
+                newTabDateSelect.appendChild(option);
+            }
+        }
+
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
             
@@ -1430,46 +1457,32 @@
             const presetsGroup = document.createElement('optgroup');
             presetsGroup.label = "── PRESETS ──";
 
-            const hasCleaning = lists.some(l => l.name === 'Cleaning');
-            const hasDeepClean = lists.some(l => l.name === 'Deep Clean');
-            const hasGroceries = lists.some(l => l.name === 'Groceries');
-            const hasHousehold = lists.some(l => l.name === 'Household');
-            const hasPillPreset = lists.some(l => l.name === 'Pills Preset');
+            const optClean = document.createElement('option');
+            optClean.value = 'Cleaning';
+            optClean.textContent = 'Clean Preset';
+            presetsGroup.appendChild(optClean);
 
-            if (!hasCleaning) {
-                const opt = document.createElement('option');
-                opt.value = 'Cleaning';
-                opt.textContent = 'Clean Preset';
-                presetsGroup.appendChild(opt);
-            }
-            if (!hasDeepClean) {
-                const opt = document.createElement('option');
-                opt.value = 'Deep Clean';
-                opt.textContent = 'Deep Clean Preset';
-                presetsGroup.appendChild(opt);
-            }
-            if (!hasGroceries) {
-                const opt = document.createElement('option');
-                opt.value = 'Groceries';
-                opt.textContent = 'Groceries Preset';
-                presetsGroup.appendChild(opt);
-            }
-            if (!hasHousehold) {
-                const opt = document.createElement('option');
-                opt.value = 'Household';
-                opt.textContent = 'Household Preset';
-                presetsGroup.appendChild(opt);
-            }
-            if (!hasPillPreset) {
-                const opt = document.createElement('option');
-                opt.value = 'Pills Preset';
-                opt.textContent = 'Pill Tracker Preset';
-                presetsGroup.appendChild(opt);
-            }
+            const optDeep = document.createElement('option');
+            optDeep.value = 'Deep Clean';
+            optDeep.textContent = 'Deep Clean Preset';
+            presetsGroup.appendChild(optDeep);
 
-            if (presetsGroup.children.length > 0) {
-                newTabSelect.appendChild(presetsGroup);
-            }
+            const optGroc = document.createElement('option');
+            optGroc.value = 'Groceries';
+            optGroc.textContent = 'Groceries Preset';
+            presetsGroup.appendChild(optGroc);
+
+            const optHouse = document.createElement('option');
+            optHouse.value = 'Household';
+            optHouse.textContent = 'Household Preset';
+            presetsGroup.appendChild(optHouse);
+
+            const optPillPreset = document.createElement('option');
+            optPillPreset.value = 'Pills Preset';
+            optPillPreset.textContent = 'Pill Tracker Preset';
+            presetsGroup.appendChild(optPillPreset);
+
+            newTabSelect.appendChild(presetsGroup);
 
             handleNewTabSelectChange();
             newTabModal.classList.remove('hidden');
@@ -1477,12 +1490,16 @@
 
         function handleNewTabSelectChange() {
             const val = newTabSelect.value;
-            if (val.startsWith('cat_')) {
+            newTabInput.classList.add('hidden');
+            newTabDateWrapper.classList.add('hidden');
+
+            if (val === 'cat_planner') {
+                newTabDateWrapper.classList.remove('hidden');
+                populatePlannerDateOptions();
+            } else if (val.startsWith('cat_')) {
                 newTabInput.classList.remove('hidden');
                 newTabInput.value = '';
                 setTimeout(() => newTabInput.focus(), 100);
-            } else {
-                newTabInput.classList.add('hidden');
             }
         }
 
@@ -1497,21 +1514,24 @@
             const val = newTabSelect.value;
 
             if (val.startsWith('cat_')) {
-                name = newTabInput.value.trim();
-                if (name === '') return;
-
-                if (val === 'cat_timed') {
-                    listType = 'timed';
-                } else if (val === 'cat_shopping') {
-                    listType = 'shopping';
-                } else if (val === 'cat_pill') {
-                    listType = 'pill';
-                    initialTasks = [];
-                } else if (val === 'cat_planner') {
+                if (val === 'cat_planner') {
                     listType = 'planner';
+                    name = newTabDateSelect.value; // Grabs selected "MON 21" format
                     initialTasks = [];
                 } else {
-                    listType = 'standard';
+                    name = newTabInput.value.trim();
+                    if (name === '') return;
+
+                    if (val === 'cat_timed') {
+                        listType = 'timed';
+                    } else if (val === 'cat_shopping') {
+                        listType = 'shopping';
+                    } else if (val === 'cat_pill') {
+                        listType = 'pill';
+                        initialTasks = [];
+                    } else {
+                        listType = 'standard';
+                    }
                 }
             } else {
                 name = val;
@@ -1528,6 +1548,7 @@
                     initialTasks = defaultHousehold.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
                     listType = 'shopping';
                 } else if (name === 'Pills Preset') {
+                    name = 'Pills';
                     initialTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
                     listType = 'pill';
                 }
