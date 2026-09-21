@@ -100,7 +100,7 @@
         <!-- Header -->
         <header class="py-2 shrink-0">
             <h1 class="text-2xl font-bold">Start Tomorrow</h1>
-            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’ t.</p>
+            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’t.</p>
         </header>
 
         <!-- Tabs Area (Drag & Drop Enabled) -->
@@ -729,6 +729,7 @@
             updateInputAreaState();
         }
 
+        // --- FIXED SEAMLESS GRADIENT ENGINE ---
         function updateTaskVisualGradients() {
             const activeList = getActiveList();
             if (!activeList || activeList.type !== 'timed') return;
@@ -1398,7 +1399,6 @@
             newTabDateSelect.innerHTML = '';
             const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
             
-            // Generate next 14 days starting from today
             for (let i = 0; i < 14; i++) {
                 const d = new Date();
                 d.setDate(d.getDate() + i);
@@ -1406,7 +1406,7 @@
                 const dayNum = d.getDate();
                 
                 const option = document.createElement('option');
-                option.value = `${dayName} ${dayNum}`; // e.g., "MON 21"
+                option.value = `${dayName} ${dayNum}`;
                 option.textContent = `${dayName} ${dayNum}`;
                 newTabDateSelect.appendChild(option);
             }
@@ -1516,7 +1516,7 @@
             if (val.startsWith('cat_')) {
                 if (val === 'cat_planner') {
                     listType = 'planner';
-                    name = newTabDateSelect.value; // Grabs selected "MON 21" format
+                    name = newTabDateSelect.value;
                     initialTasks = [];
                 } else {
                     name = newTabInput.value.trim();
