@@ -2,20 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Start Tomorrow</title>
-    
+    <meta name="apple-mobile-web-app-title" content="now what?">
+    <title>now what?</title>
+
     <!-- PWA / Home Screen Support -->
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- SortableJS for mobile-friendly drag and drop -->
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- SortableJS for mobile-friendly drag and drop (pinned version) -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 
     <style>
         :root {
@@ -26,10 +28,11 @@
             --button-text-color: #ffffff;
             --secondary-bg-color: #f4f4f5;
             --destructive-text-color: #e53935;
+            color-scheme: light;
         }
 
         @media (prefers-color-scheme: dark) {
-            :root {
+            :root:not([data-theme="light"]) {
                 --bg-color: #212121;
                 --text-color: #ffffff;
                 --hint-color: #aaaaaa;
@@ -37,43 +40,64 @@
                 --button-text-color: #ffffff;
                 --secondary-bg-color: #0f0f0f;
                 --destructive-text-color: #ff595a;
+                color-scheme: dark;
             }
         }
+        :root[data-theme="dark"] {
+            --bg-color: #212121;
+            --text-color: #ffffff;
+            --hint-color: #aaaaaa;
+            --button-color: #8774e1;
+            --button-text-color: #ffffff;
+            --secondary-bg-color: #0f0f0f;
+            --destructive-text-color: #ff595a;
+            color-scheme: dark;
+        }
+
+        html, body { height: 100%; }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            overscroll-behavior-y: none; 
+            overscroll-behavior-y: none;
+            display: flex;
+            flex-direction: column;
+            /* Keep content clear of the notch / home indicator in standalone mode */
+            padding: calc(1rem + env(safe-area-inset-top, 0px)) calc(1rem + env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) calc(1rem + env(safe-area-inset-left, 0px));
+            box-sizing: border-box;
         }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background-color: var(--hint-color); border-radius: 10px; }
-        
+
+        /* Tailwind's bg-opacity / border-opacity don't apply to arbitrary var() colors,
+           so the translucent tints are defined here with color-mix. */
+        .bg-hint-soft   { background-color: color-mix(in srgb, var(--hint-color) 20%, transparent); }
+        .bg-danger-soft { background-color: color-mix(in srgb, var(--destructive-text-color) 15%, transparent); }
+        .bg-accent-soft { background-color: color-mix(in srgb, var(--button-color) 18%, transparent); }
+        .border-soft    { border-color: color-mix(in srgb, var(--hint-color) 20%, transparent); }
+        .border-faint   { border-color: color-mix(in srgb, var(--hint-color) 10%, transparent); }
+        .hover-danger-soft:hover { background-color: color-mix(in srgb, var(--destructive-text-color) 10%, transparent); }
+
         /* Smooth momentum scrolling for iOS */
         .tab-scroll-container {
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
-        .tab-scroll-container::-webkit-scrollbar {
-            display: none;
-        }
-        
+        .tab-scroll-container::-webkit-scrollbar { display: none; }
+
         .sortable-ghost { opacity: 0.4; }
 
         /* Custom dropdown arrow indicator */
-        .custom-select-wrapper {
-            position: relative;
-        }
+        .custom-select-wrapper { position: relative; }
         .custom-select-wrapper::after {
             content: "";
             position: absolute;
             right: 0.75rem;
             top: 50%;
-            transform: translateY(-50%);
             width: 0.55rem;
             height: 0.55rem;
             border-right: 2px solid var(--hint-color);
@@ -88,19 +112,26 @@
             will-change: transform;
             transition: transform 0.25s ease-out, opacity 0.25s ease-out;
         }
-        #task-container.swiping {
-            transition: none !important;
+        #task-container.swiping { transition: none !important; }
+
+        #toast {
+            bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition: none !important; animation: none !important; }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col p-4">
+<body>
 
-    <div class="max-w-md w-full mx-auto flex flex-col h-full gap-4">
-        
+    <div class="max-w-md w-full mx-auto flex flex-col flex-1 min-h-0 gap-4">
+
         <!-- Header -->
         <header class="py-2 shrink-0">
-            <h1 class="text-2xl font-bold">Start Tomorrow</h1>
-            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’ t.</p>
+            <h1 class="text-2xl font-bold">now what?</h1>
+            <p class="text-[var(--hint-color)] text-sm mt-1">Get shit done. Or don’t.</p>
         </header>
 
         <!-- Tabs Area (Drag & Drop Enabled) -->
@@ -109,51 +140,55 @@
         </div>
 
         <!-- Timer Bar (Only visible for timed lists) -->
-        <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-[var(--hint-color)] border-opacity-10 gap-2">
+        <div id="timer-container" class="hidden bg-[var(--secondary-bg-color)] px-3 py-3 rounded-2xl flex items-center justify-between shrink-0 shadow-sm border border-faint gap-2">
             <div class="flex items-center gap-1.5 min-w-0">
                 <svg id="global-timer-icon" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--destructive-text-color)] shrink-0 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span id="timer-display" class="text-base font-mono font-bold tracking-tight truncate">00:00:00</span>
+                <span id="timer-display" class="text-base font-mono font-bold tracking-tight truncate tabular-nums">00:00:00</span>
             </div>
             <div class="flex items-center gap-1 shrink-0">
                 <button id="timer-toggle-btn" class="bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm">Start</button>
-                <button id="timer-stop-btn" class="bg-[var(--hint-color)] bg-opacity-20 text-[var(--text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Reset Timer">Reset</button>
-                <button id="uncheck-all-btn" class="bg-[var(--destructive-text-color)] bg-opacity-15 text-[var(--button-text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Uncheck all tasks">Uncheck</button>
+                <button id="timer-stop-btn" class="bg-hint-soft text-[var(--text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Reset Timer">Reset</button>
+                <button id="uncheck-all-btn" class="bg-danger-soft text-[var(--destructive-text-color)] px-2 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform" title="Uncheck all tasks">Uncheck</button>
             </div>
         </div>
 
         <!-- Input Area (Hidden for Planners) -->
         <div id="global-input-area" class="flex gap-2 w-full shrink-0 items-center">
-            <input 
-                type="text" 
-                id="task-input" 
-                placeholder="Add new..." 
+            <input
+                type="text"
+                id="task-input"
+                placeholder="Add new..."
+                aria-label="New item"
                 class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all min-w-0"
             >
-            <input 
-                type="number" 
-                id="task-time-input" 
-                placeholder="Mins" 
-                min="1" 
+            <input
+                type="number"
+                id="task-time-input"
+                placeholder="Mins"
+                min="1"
                 max="300"
                 inputmode="numeric"
                 pattern="[0-9]*"
+                aria-label="Minutes"
                 class="w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0"
                 title="Approximate time in minutes"
             >
             <!-- Pill Tracker Specific Inputs -->
-            <input 
-                type="text" 
-                id="pill-dose-input" 
-                placeholder="Dose" 
+            <input
+                type="text"
+                id="pill-dose-input"
+                placeholder="Dose"
+                aria-label="Dose"
                 class="hidden w-20 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-3 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0"
                 title="Dosage (e.g., 10mg, 1 pill)"
             >
             <div id="pill-time-wrapper" class="hidden custom-select-wrapper shrink-0">
-                <select 
-                    id="pill-time-select" 
-                    class="bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl pl-3 pr-8 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-sm font-medium border border-[var(--hint-color)] border-opacity-20 appearance-none cursor-pointer"
+                <select
+                    id="pill-time-select"
+                    aria-label="Time of day"
+                    class="bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl pl-3 pr-8 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-sm font-medium border border-soft appearance-none cursor-pointer"
                 >
                     <option value="morning">Morning</option>
                     <option value="day">Day</option>
@@ -161,8 +196,9 @@
                 </select>
             </div>
 
-            <button 
-                id="add-btn" 
+            <button
+                id="add-btn"
+                aria-label="Add"
                 class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-4 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0"
             >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,32 +207,35 @@
             </button>
         </div>
 
-        <!-- Swipable Checklist Container -->
-        <div id="task-container" class="flex-1 overflow-y-auto mt-2">
+        <!-- Swipable Checklist Container (the only scrolling region) -->
+        <div id="task-container" class="flex-1 min-h-0 overflow-y-auto">
             <ul id="task-list" class="flex flex-col gap-2 pb-20">
                 <!-- Tasks injected via JS -->
             </ul>
-        </div>
-        
-        <!-- Empty State Container -->
-        <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 022 2h2a2 2 0 022-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-            <p class="text-[var(--hint-color)]">Your tab is empty.<br>Add some items to get started!</p>
-        </div>
 
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex-col items-center justify-center text-center mt-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-[var(--hint-color)] mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <p class="text-[var(--hint-color)]">Your tab is empty.<br>Add some items to get started!</p>
+            </div>
+        </div>
     </div>
 
+    <!-- Toast (replaces blocking alert()) -->
+    <div id="toast" role="status" aria-live="polite" class="fixed left-1/2 -translate-x-1/2 z-[60] opacity-0 pointer-events-none translate-y-2 bg-[var(--text-color)] text-[var(--bg-color)] px-4 py-2.5 rounded-xl shadow-lg text-sm font-semibold max-w-[90vw] text-center"></div>
+
     <!-- New Tab Modal -->
-    <div id="new-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="new-tab-modal" class="modal hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Create New Tab</h2>
-            
+
             <div class="custom-select-wrapper w-full">
-                <select 
-                    id="new-tab-select" 
-                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-[var(--hint-color)] border-opacity-20 font-medium"
+                <select
+                    id="new-tab-select"
+                    aria-label="Tab type"
+                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-soft font-medium"
                 >
                     <!-- Options injected via JS -->
                 </select>
@@ -204,19 +243,20 @@
 
             <!-- Planner Date Dropdown (Shown only for Daily Planner) -->
             <div id="new-tab-date-wrapper" class="hidden custom-select-wrapper w-full">
-                <select 
-                    id="new-tab-date-select" 
-                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-[var(--hint-color)] border-opacity-20 font-medium"
+                <select
+                    id="new-tab-date-select"
+                    aria-label="Planner date"
+                    class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all appearance-none cursor-pointer pr-10 border border-soft font-medium"
                 >
                     <!-- Options generated via JS -->
                 </select>
             </div>
 
             <!-- Custom Tab Name Input (Shown for normal lists) -->
-            <input 
-                type="text" 
-                id="new-tab-input" 
-                placeholder="Enter tab name..." 
+            <input
+                type="text"
+                id="new-tab-input"
+                placeholder="Enter tab name..."
                 class="hidden w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
 
@@ -228,17 +268,17 @@
     </div>
 
     <!-- Manage Tab Modal (Rename / Delete) -->
-    <div id="edit-tab-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="edit-tab-modal" class="modal hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 class="text-xl font-bold">Manage Tab</h2>
-            <input 
-                type="text" 
-                id="edit-tab-input" 
-                placeholder="Tab name..." 
+            <input
+                type="text"
+                id="edit-tab-input"
+                placeholder="Tab name..."
                 class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all"
             >
             <div class="flex gap-2 justify-between mt-2">
-                <button id="delete-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--button-text-color)] bg-[var(--destructive-text-color)] bg-opacity-10 hover:bg-opacity-20 transition-colors">Delete</button>
+                <button id="delete-tab-btn" class="px-4 py-2.5 rounded-xl font-semibold text-[var(--destructive-text-color)] bg-danger-soft transition-colors">Delete</button>
                 <div class="flex gap-2">
                     <button id="cancel-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold text-[var(--hint-color)] hover:bg-[var(--secondary-bg-color)] transition-colors">Cancel</button>
                     <button id="save-edit-tab-btn" class="px-5 py-2.5 rounded-xl font-semibold bg-[var(--button-color)] text-[var(--button-text-color)] shadow-sm active:scale-95 transition-transform">Save</button>
@@ -248,14 +288,14 @@
     </div>
 
     <!-- Edit Task Time / Dose Modal -->
-    <div id="edit-time-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="edit-time-modal" class="modal hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-[var(--bg-color)] p-6 rounded-2xl w-full max-w-sm flex flex-col gap-4 shadow-xl border border-[var(--secondary-bg-color)]">
             <h2 id="edit-modal-title" class="text-xl font-bold">Edit Item Details</h2>
             <p id="edit-time-task-name" class="text-sm text-[var(--hint-color)] truncate"></p>
-            <input 
-                type="text" 
-                id="edit-time-input" 
-                placeholder="Value" 
+            <input
+                type="text"
+                id="edit-time-input"
+                placeholder="Value"
                 class="w-full bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all font-medium text-center text-lg"
             >
             <div class="flex gap-2 justify-end mt-2">
@@ -292,7 +332,7 @@
             { text: "Wash the bedsheets", time: 5 },
             { text: "Trash", time: 5 }
         ];
-        
+
         const defaultHousehold = [
             { text: "Gloves", status: 'in_stock' },
             { text: "Sponges", status: 'low' },
@@ -375,18 +415,151 @@
             { text: "Magnesium", dose: "400mg", section: "night", completed: false }
         ];
 
+        const PILL_SECTIONS = [
+            { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
+            { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
+            { key: 'night', title: '🌙 Night (6 PM - 12 AM)' }
+        ];
+        const PLANNER_BLOCKS = [
+            { key: 'morning', title: 'Morning Block' },
+            { key: 'afternoon', title: 'Afternoon Block' },
+            { key: 'evening', title: 'Evening Block' }
+        ];
+
+        // Storage keys keep their original "clean checklist" names so existing saved lists survive the rename
+        const STORAGE_KEY = 'cleanChecklistMultiData';
+        const TIMERS_KEY = 'cleanChecklistTimers';
+        const PILL_RESET_KEY = 'cleanAppLastPillReset';
+
         let lists = [];
         let activeListId = 1;
         let nextListId = 4;
-        let sortableTasksInstances = []; 
+        let sortableTasksInstances = [];
         let sortableTabsInstance = null;
+        let isDragging = false;
 
-        let listTimers = {}; 
+        // Timers are timestamp-based so they stay accurate when the phone locks
+        // or the tab is throttled, and they survive an app reload.
+        // key: "<listId>" for timed lists, "<listId>_<section>" for planner blocks
+        let listTimers = {};
         let editingTaskId = null;
 
+        // ---------- Storage (never let a storage error break the app) ----------
+        function storageGet(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
+        }
+        function storageSet(key, value) {
+            try { localStorage.setItem(key, value); } catch (e) { /* storage unavailable or full */ }
+        }
+
+        function saveData() {
+            storageSet(STORAGE_KEY, JSON.stringify({ lists: lists, activeListId: activeListId }));
+        }
+
+        function saveTimers() {
+            const out = {};
+            Object.entries(listTimers).forEach(([k, t]) => {
+                out[k] = { base: t.base, isRunning: t.isRunning, startedAt: t.startedAt };
+            });
+            storageSet(TIMERS_KEY, JSON.stringify(out));
+        }
+
+        function buildDefaultLists() {
+            const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
+            const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
+            const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
+            return [
+                { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
+                { id: 2, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
+                { id: 3, name: 'Pills', type: 'pill', tasks: pillTasks, nextTaskId: pillTasks.length + 1 }
+            ];
+        }
+
+        function loadData() {
+            let parsed = null;
+            try {
+                const raw = storageGet(STORAGE_KEY);
+                if (raw) parsed = JSON.parse(raw);
+            } catch (e) {
+                parsed = null; // corrupted data: fall back to defaults instead of a blank screen
+            }
+
+            if (parsed && Array.isArray(parsed.lists) && parsed.lists.length > 0) {
+                lists = parsed.lists.filter(l => l && typeof l === 'object');
+                lists.forEach(l => {
+                    if (!Array.isArray(l.tasks)) l.tasks = [];
+                    if (!l.type) {
+                        l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'shopping' : 'timed';
+                    }
+                    if (l.name === 'Supplies') l.name = 'Household';
+
+                    l.tasks.forEach(t => {
+                        if ((l.type === 'timed' || l.type === 'planner') && t.time === undefined) t.time = 5;
+                        if (l.type === 'shopping' && !t.status) t.status = t.completed ? 'out_of_stock' : 'in_stock';
+                        if (l.type === 'pill') {
+                            if (!t.section) t.section = 'morning';
+                            if (t.dose === undefined) t.dose = '1 pill';
+                        }
+                        if (l.type === 'planner' && !t.section) t.section = 'morning';
+                    });
+
+                    // Make sure new task ids never collide with existing ones
+                    const maxTaskId = l.tasks.reduce((m, t) => Math.max(m, Number(t.id) || 0), 0);
+                    if (!l.nextTaskId || l.nextTaskId <= maxTaskId) l.nextTaskId = maxTaskId + 1;
+                });
+            }
+
+            if (lists.length === 0) {
+                lists = buildDefaultLists();
+                activeListId = 1;
+            } else {
+                activeListId = parsed.activeListId;
+            }
+
+            // A stale activeListId left no tab highlighted and broke timer controls
+            if (!lists.some(l => l.id === activeListId)) activeListId = lists[0].id;
+            nextListId = Math.max(...lists.map(l => l.id)) + 1;
+            saveData();
+
+            try {
+                const rawTimers = JSON.parse(storageGet(TIMERS_KEY) || '{}');
+                Object.entries(rawTimers).forEach(([k, t]) => {
+                    const listId = parseInt(k, 10);
+                    if (!lists.some(l => l.id === listId)) return;
+                    listTimers[k] = {
+                        base: Number(t.base) || 0,
+                        isRunning: !!t.isRunning && !!t.startedAt,
+                        startedAt: Number(t.startedAt) || 0
+                    };
+                });
+            } catch (e) { listTimers = {}; }
+        }
+
+        loadData();
+
+        // ---------- Helpers ----------
+        function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
+
+        function onEnter(el, handler) {
+            el.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); handler(); }
+            });
+        }
+
+        let toastTimeout = null;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.add('opacity-0', 'translate-y-2'), 3500);
+            if (navigator.vibrate) { try { navigator.vibrate([200, 100, 200]); } catch (e) {} }
+        }
+
+        // ---------- Pills ----------
         function isPillOverdue(task) {
             if (task.completed) return false;
-            const currentHour = new Date().getHours(); 
+            const currentHour = new Date().getHours();
             const section = task.section || 'morning';
             if (section === 'morning' && currentHour >= 12) return true;
             if (section === 'day' && currentHour >= 18) return true;
@@ -400,71 +573,31 @@
 
         function checkAndResetPillTrackers() {
             const todayStr = new Date().toDateString();
-            const lastResetDate = localStorage.getItem('cleanAppLastPillReset');
+            const lastResetDate = storageGet(PILL_RESET_KEY);
 
             if (lastResetDate !== todayStr) {
                 lists.forEach(l => {
-                    if (l.type === 'pill') {
-                        l.tasks.forEach(t => t.completed = false);
-                    }
+                    if (l.type === 'pill') l.tasks.forEach(t => t.completed = false);
                 });
-                localStorage.setItem('cleanAppLastPillReset', todayStr);
+                storageSet(PILL_RESET_KEY, todayStr);
                 saveData();
+                return true;
             }
-        }
-
-        setInterval(() => {
-            checkAndResetPillTrackers();
-            const activeList = getActiveList();
-            if (activeList && activeList.type === 'pill') {
-                renderTasks();
-            }
-            renderTabs();
-        }, 60000);
-
-        const savedMultiData = localStorage.getItem('cleanChecklistMultiData');
-        if (savedMultiData) {
-            const parsed = JSON.parse(savedMultiData);
-            lists = parsed.lists || [];
-            
-            lists.forEach(l => {
-                if (!l.type) {
-                    l.type = (l.name === 'Household' || l.name === 'Supplies' || l.name === 'Groceries') ? 'shopping' : 'timed';
-                }
-                if (l.name === 'Supplies') l.name = 'Household';
-                
-                l.tasks.forEach(t => {
-                    if ((l.type === 'timed' || l.type === 'planner') && t.time === undefined) t.time = 5;
-                    if (l.type === 'shopping' && !t.status) t.status = t.completed ? 'out_of_stock' : 'in_stock';
-                    if (l.type === 'pill') {
-                        if (!t.section) t.section = 'morning';
-                        if (t.dose === undefined) t.dose = '1 pill';
-                    }
-                });
-            });
-
-            activeListId = parsed.activeListId || (lists.length > 0 ? lists[0].id : 1);
-            nextListId = lists.length > 0 ? Math.max(...lists.map(l => l.id)) + 1 : 4;
-        } else {
-            const cleaningTasks = defaultCleaningTasks.map((t, index) => ({ id: index + 1, text: t.text, time: t.time, completed: false }));
-            const groceriesTasks = defaultGroceries.map((t, index) => ({ id: index + 1, text: t.text, status: t.status, completed: false }));
-            const pillTasks = defaultPills.map((t, index) => ({ id: index + 1, text: t.text, dose: t.dose, section: t.section, completed: false }));
-
-            lists = [
-                { id: 1, name: 'Cleaning', type: 'timed', tasks: cleaningTasks, nextTaskId: cleaningTasks.length + 1 },
-                { id: 2, name: 'Groceries', type: 'shopping', tasks: groceriesTasks, nextTaskId: groceriesTasks.length + 1 },
-                { id: 3, name: 'Pills', type: 'pill', tasks: pillTasks, nextTaskId: pillTasks.length + 1 }
-            ];
-            activeListId = 1;
-            saveData();
+            return false;
         }
 
         checkAndResetPillTrackers();
 
-        function saveData() {
-            localStorage.setItem('cleanChecklistMultiData', JSON.stringify({ lists: lists, activeListId: activeListId }));
-        }
+        // Once a minute: daily pill reset + overdue badges. Skip while the user is dragging.
+        setInterval(() => {
+            if (isDragging) return;
+            const didReset = checkAndResetPillTrackers();
+            const activeList = getActiveList();
+            if (activeList && (activeList.type === 'pill' || didReset)) renderTasks();
+            renderTabs(false);
+        }, 60000);
 
+        // ---------- Timers ----------
         const globalInputArea = document.getElementById('global-input-area');
         const taskInput = document.getElementById('task-input');
         const taskTimeInput = document.getElementById('task-time-input');
@@ -476,7 +609,7 @@
         const taskContainer = document.getElementById('task-container');
         const emptyState = document.getElementById('empty-state');
         const tabBar = document.getElementById('tab-bar');
-        
+
         const timerContainer = document.getElementById('timer-container');
         const timerDisplay = document.getElementById('timer-display');
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
@@ -489,7 +622,7 @@
         const newTabInput = document.getElementById('new-tab-input');
         const newTabDateWrapper = document.getElementById('new-tab-date-wrapper');
         const newTabDateSelect = document.getElementById('new-tab-date-select');
-        
+
         const editTabModal = document.getElementById('edit-tab-modal');
         const editTabInput = document.getElementById('edit-tab-input');
         const deleteTabBtn = document.getElementById('delete-tab-btn');
@@ -499,35 +632,259 @@
         const editTimeTaskName = document.getElementById('edit-time-task-name');
         const editTimeInput = document.getElementById('edit-time-input');
 
-        function getActiveList() { return lists.find(l => l.id === activeListId) || lists[0]; }
-
         function calculateTotalSeconds(list, section = null) {
             if (!list || (list.type !== 'timed' && list.type !== 'planner')) return 0;
             let activeUncompletedTasks = list.tasks.filter(t => !t.completed);
-            if (section) {
-                activeUncompletedTasks = activeUncompletedTasks.filter(t => t.section === section);
-            }
+            if (section) activeUncompletedTasks = activeUncompletedTasks.filter(t => t.section === section);
             const totalMins = activeUncompletedTasks.reduce((sum, t) => sum + (Number(t.time) || 0), 0);
-            return totalMins * 60;
+            return Math.round(totalMins * 60);
         }
 
         function formatTime(totalSeconds) {
+            totalSeconds = Math.max(0, Math.floor(totalSeconds));
             const hrs = Math.floor(totalSeconds / 3600);
             const mins = Math.floor((totalSeconds % 3600) / 60);
             const secs = totalSeconds % 60;
             return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
         }
 
+        function timerKey(list, section) {
+            return list.type === 'planner' ? `${list.id}_${section}` : String(list.id);
+        }
+
         function getListTimer(key) {
-            if (!listTimers[key]) {
-                listTimers[key] = { elapsed: 0, isRunning: false, intervalId: null };
-            }
+            if (!listTimers[key]) listTimers[key] = { base: 0, isRunning: false, startedAt: 0 };
             return listTimers[key];
         }
 
+        function timerElapsed(timer) {
+            return timer.isRunning ? timer.base + Math.floor((Date.now() - timer.startedAt) / 1000) : timer.base;
+        }
+
+        function setTimerElapsed(timer, secs) {
+            timer.base = Math.max(0, Math.floor(secs));
+            if (timer.isRunning) timer.startedAt = Date.now();
+        }
+
+        function timerTotalFor(key) {
+            const [idPart, section] = key.split('_');
+            const list = lists.find(l => l.id === parseInt(idPart, 10));
+            if (!list) return null;
+            return { list, section: section || null, total: calculateTotalSeconds(list, section || null) };
+        }
+
+        function runTimer(key) {
+            const info = timerTotalFor(key);
+            if (!info) return;
+            const timer = getListTimer(key);
+            if (info.total - timerElapsed(timer) <= 0) return;
+            timer.isRunning = true;
+            timer.startedAt = Date.now();
+            saveTimers();
+        }
+
+        function pauseTimerKey(key) {
+            const timer = getListTimer(key);
+            timer.base = timerElapsed(timer);
+            timer.isRunning = false;
+            saveTimers();
+        }
+
+        function resetTimerKey(key) {
+            const timer = getListTimer(key);
+            timer.base = 0;
+            timer.isRunning = false;
+            saveTimers();
+        }
+
+        function clearTimersForList(listId) {
+            Object.keys(listTimers).forEach(k => {
+                if (parseInt(k, 10) === listId) delete listTimers[k];
+            });
+            saveTimers();
+        }
+
+        // When a task is checked off (or deleted) while a countdown is active, remove the
+        // time already spent on it from the elapsed counter. Previously the task's full
+        // duration was subtracted from the total AND its spent time stayed in "elapsed",
+        // so the remaining time dropped twice.
+        function creditTaskTime(list, task) {
+            if (!list || task.completed || (list.type !== 'timed' && list.type !== 'planner')) return;
+            const key = timerKey(list, task.section);
+            if (!listTimers[key]) return;
+            const timer = listTimers[key];
+            const elapsed = timerElapsed(timer);
+            if (elapsed <= 0) return;
+
+            let start = 0;
+            for (const t of list.tasks) {
+                if (t.completed) continue;
+                if (list.type === 'planner' && t.section !== task.section) continue;
+                if (t === task) break;
+                start += (Number(t.time) || 0) * 60;
+            }
+            const duration = (Number(task.time) || 0) * 60;
+            const consumed = Math.min(duration, Math.max(0, elapsed - start));
+            setTimerElapsed(timer, elapsed - consumed);
+            saveTimers();
+        }
+
+        function setToggleButtonState(running) {
+            if (running) {
+                timerToggleBtn.textContent = 'Pause';
+                timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+                globalTimerIcon.classList.remove('hidden');
+                globalTimerIcon.classList.add('animate-pulse');
+            } else {
+                timerToggleBtn.textContent = 'Start';
+                timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
+                globalTimerIcon.classList.add('hidden');
+                globalTimerIcon.classList.remove('animate-pulse');
+            }
+        }
+
+        function refreshTimedDisplay() {
+            const activeList = getActiveList();
+            if (!activeList || activeList.type !== 'timed') return;
+            const timer = getListTimer(String(activeList.id));
+            const total = calculateTotalSeconds(activeList);
+            if (timerElapsed(timer) > total) setTimerElapsed(timer, total);
+            timerDisplay.textContent = formatTime(total - timerElapsed(timer));
+            setToggleButtonState(timer.isRunning);
+            updateTaskVisualGradients();
+        }
+
+        // One ticker drives every running timer (timed lists and planner blocks).
+        function tick() {
+            let finishedActive = false;
+            Object.keys(listTimers).forEach(key => {
+                const timer = listTimers[key];
+                if (!timer.isRunning) return;
+                const info = timerTotalFor(key);
+                if (!info) { delete listTimers[key]; saveTimers(); return; }
+
+                if (timerElapsed(timer) >= info.total) {
+                    timer.base = info.total;
+                    timer.isRunning = false;
+                    saveTimers();
+                    const label = info.section ? `${info.list.name}: ${info.section} block` : info.list.name;
+                    showToast(`Time is up for ${label}! Great job.`);
+                    if (info.list.id === activeListId) finishedActive = true;
+                }
+            });
+
+            const activeList = getActiveList();
+            if (!activeList) return;
+            if (finishedActive && activeList.type === 'planner') {
+                renderTasks();
+            } else if (activeList.type === 'timed') {
+                refreshTimedDisplay();
+            } else if (activeList.type === 'planner') {
+                PLANNER_BLOCKS.forEach(block => {
+                    const timer = getListTimer(`${activeList.id}_${block.key}`);
+                    const total = calculateTotalSeconds(activeList, block.key);
+                    const display = document.getElementById(`planner-timer-${block.key}`);
+                    if (display) display.textContent = formatTime(total - timerElapsed(timer));
+                    updatePlannerVisualGradients(block.key);
+                });
+            }
+        }
+        setInterval(tick, 1000);
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
+
+        function toggleTimer() {
+            const key = String(activeListId);
+            if (getListTimer(key).isRunning) pauseTimerKey(key);
+            else runTimer(key);
+            refreshTimedDisplay();
+        }
+
+        function stopTimer() {
+            resetTimerKey(String(activeListId));
+            refreshTimedDisplay();
+        }
+
+        function togglePlannerTimer(section) {
+            const key = `${activeListId}_${section}`;
+            if (getListTimer(key).isRunning) pauseTimerKey(key);
+            else runTimer(key);
+            renderTasks();
+        }
+
+        function resetPlannerTimer(section) {
+            resetTimerKey(`${activeListId}_${section}`);
+            renderTasks();
+        }
+
+        function uncheckAllTasks() {
+            const activeList = getActiveList();
+            if (!activeList) return;
+
+            activeList.tasks.forEach(t => {
+                t.completed = false;
+                if (activeList.type === 'shopping') t.status = 'in_stock';
+            });
+
+            if (activeList.type === 'timed') {
+                resetTimerKey(String(activeList.id));
+            } else if (activeList.type === 'planner') {
+                PLANNER_BLOCKS.forEach(b => resetTimerKey(`${activeList.id}_${b.key}`));
+            }
+
+            saveData();
+            renderTasks();
+            renderTabs(false);
+            updateInputAreaState();
+        }
+
+        function paintProgress(li, task, elapsedSecs, startSecs) {
+            if (task.completed) {
+                li.style.background = 'rgba(34, 197, 94, 0.2)';
+                li.style.borderColor = 'rgba(34, 197, 94, 0.4)';
+                return;
+            }
+            const duration = (Number(task.time) || 0) * 60;
+            // Progress stays visible while paused, not only while running
+            if (elapsedSecs > startSecs && duration > 0) {
+                const p = Math.min(1, (elapsedSecs - startSecs) / duration) * 100;
+                li.style.background = `linear-gradient(to right, rgba(239, 68, 68, 0.45) ${p}%, var(--secondary-bg-color) ${p}%)`;
+            } else {
+                li.style.background = 'var(--secondary-bg-color)';
+            }
+        }
+
+        function paintTaskProgress(tasks, container, timer) {
+            const elapsedSecs = timerElapsed(timer);
+            let accumulatedSecs = 0;
+            tasks.forEach(task => {
+                const li = container.querySelector(`li[data-id="${task.id}"]`);
+                const start = accumulatedSecs;
+                if (!task.completed) accumulatedSecs += (Number(task.time) || 0) * 60;
+                if (li) paintProgress(li, task, elapsedSecs, start);
+            });
+        }
+
+        function updateTaskVisualGradients() {
+            const activeList = getActiveList();
+            if (!activeList || activeList.type !== 'timed') return;
+            paintTaskProgress(activeList.tasks, taskList, getListTimer(String(activeList.id)));
+        }
+
+        function updatePlannerVisualGradients(section) {
+            const activeList = getActiveList();
+            if (!activeList || activeList.type !== 'planner') return;
+            const zone = taskList.querySelector(`ul[data-section="${section}"]`);
+            if (!zone) return;
+            const timer = getListTimer(`${activeList.id}_${section}`);
+            const total = calculateTotalSeconds(activeList, section);
+            if (timerElapsed(timer) > total) setTimerElapsed(timer, total);
+            paintTaskProgress(activeList.tasks.filter(t => t.section === section), zone, timer);
+        }
+
+        // ---------- Input area ----------
         function updateInputAreaState() {
             const activeList = getActiveList();
-            
+
             taskTimeInput.classList.add('hidden');
             pillDoseInput.classList.add('hidden');
             pillTimeWrapper.classList.add('hidden');
@@ -537,327 +894,81 @@
             if (activeList.type === 'planner') {
                 globalInputArea.classList.add('hidden');
                 globalInputArea.classList.remove('flex');
-            } else {
-                globalInputArea.classList.remove('hidden');
-                globalInputArea.classList.add('flex');
-
-                if (activeList.type === 'timed') {
-                    taskTimeInput.classList.remove('hidden');
-                    timerContainer.classList.remove('hidden');
-                    timerContainer.classList.add('flex');
-                    taskInput.placeholder = "Add a timed task...";
-                    
-                    const timer = getListTimer(activeList.id);
-                    const currentTotal = calculateTotalSeconds(activeList);
-                    
-                    if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
-                    const remaining = Math.max(0, currentTotal - timer.elapsed);
-                    timerDisplay.textContent = formatTime(remaining);
-                    
-                    if (timer.isRunning) {
-                        timerToggleBtn.textContent = 'Pause';
-                        timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-                        globalTimerIcon.classList.remove('hidden');
-                        globalTimerIcon.classList.add('animate-pulse');
-                    } else {
-                        timerToggleBtn.textContent = 'Start';
-                        timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-                        globalTimerIcon.classList.add('hidden');
-                        globalTimerIcon.classList.remove('animate-pulse');
-                    }
-                } else if (activeList.type === 'pill') {
-                    pillDoseInput.classList.remove('hidden');
-                    pillTimeWrapper.classList.remove('hidden');
-                    taskInput.placeholder = "Pill name...";
-                } else if (activeList.type === 'shopping') {
-                    taskInput.placeholder = "Add item...";
-                } else {
-                    taskInput.placeholder = "Add a task...";
-                }
+                return;
             }
-        }
 
-        function toggleTimer() {
-            const timer = getListTimer(activeListId);
-            if (timer.isRunning) pauseTimer();
-            else startTimer();
-        }
+            globalInputArea.classList.remove('hidden');
+            globalInputArea.classList.add('flex');
 
-        function startTimer() {
-            const activeList = getActiveList();
-            const timer = getListTimer(activeList.id);
-            const currentTotal = calculateTotalSeconds(activeList);
-            
-            if (currentTotal - timer.elapsed <= 0) return;
-            
-            timer.isRunning = true;
-            timerToggleBtn.textContent = 'Pause';
-            timerToggleBtn.className = 'bg-[var(--destructive-text-color)] text-white px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-            globalTimerIcon.classList.remove('hidden');
-            globalTimerIcon.classList.add('animate-pulse');
-            
-            timer.intervalId = setInterval(() => {
-                const currentList = getActiveList();
-                
-                timer.elapsed++;
-                const cTotal = calculateTotalSeconds(activeList); 
-                if (timer.elapsed > cTotal) timer.elapsed = cTotal;
-                
-                if (currentList.id === activeList.id) {
-                    const remaining = Math.max(0, cTotal - timer.elapsed);
-                    timerDisplay.textContent = formatTime(remaining);
-                    updateTaskVisualGradients();
-                }
-                
-                if (timer.elapsed >= cTotal) {
-                    timer.isRunning = false;
-                    clearInterval(timer.intervalId);
-                    if (currentList.id === activeList.id) {
-                        timerToggleBtn.textContent = 'Start';
-                        timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-                        globalTimerIcon.classList.add('hidden');
-                        globalTimerIcon.classList.remove('animate-pulse');
-                    }
-                    alert('Time is up! Great job.');
-                }
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            const timer = getListTimer(activeListId);
-            timer.isRunning = false;
-            clearInterval(timer.intervalId);
-            
-            timerToggleBtn.textContent = 'Start';
-            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-            globalTimerIcon.classList.add('hidden');
-            globalTimerIcon.classList.remove('animate-pulse');
-        }
-
-        function stopTimer() {
-            const timer = getListTimer(activeListId);
-            timer.isRunning = false;
-            clearInterval(timer.intervalId);
-            timer.elapsed = 0;
-            
-            timerToggleBtn.textContent = 'Start';
-            timerToggleBtn.className = 'bg-[var(--button-color)] text-[var(--button-text-color)] px-2.5 py-1.5 rounded-xl font-semibold text-xs active:scale-95 transition-transform shadow-sm';
-            globalTimerIcon.classList.add('hidden');
-            globalTimerIcon.classList.remove('animate-pulse');
-            
-            const activeList = getActiveList();
-            if (activeList && activeList.type === 'timed') {
-                const currentTotal = calculateTotalSeconds(activeList);
-                timerDisplay.textContent = formatTime(currentTotal);
-                updateTaskVisualGradients();
-            }
-        }
-
-        function togglePlannerTimer(section) {
-            const activeList = getActiveList();
-            const timer = getListTimer(`${activeList.id}_${section}`);
-            
-            if (timer.isRunning) {
-                timer.isRunning = false;
-                clearInterval(timer.intervalId);
-                renderTasks(); 
-            } else {
-                const totalSecs = calculateTotalSeconds(activeList, section);
-                if (totalSecs - timer.elapsed <= 0) return;
-                
-                timer.isRunning = true;
-                timer.intervalId = setInterval(() => {
-                    timer.elapsed++;
-                    const currentTotal = calculateTotalSeconds(activeList, section);
-                    if (timer.elapsed > currentTotal) timer.elapsed = currentTotal;
-                    
-                    if (getActiveList().id === activeList.id) {
-                        const remaining = Math.max(0, currentTotal - timer.elapsed);
-                        const display = document.getElementById(`planner-timer-${section}`);
-                        if (display) display.textContent = formatTime(remaining);
-                        updatePlannerVisualGradients(section);
-                    }
-                    
-                    if (timer.elapsed >= currentTotal) {
-                        timer.isRunning = false;
-                        clearInterval(timer.intervalId);
-                        if (getActiveList().id === activeList.id) renderTasks();
-                        alert(`Time's up for the ${section} block!`);
-                    }
-                }, 1000);
-                renderTasks();
-            }
-        }
-
-        function resetPlannerTimer(section) {
-            const activeList = getActiveList();
-            const timer = getListTimer(`${activeList.id}_${section}`);
-            timer.isRunning = false;
-            clearInterval(timer.intervalId);
-            timer.elapsed = 0;
-            renderTasks();
-        }
-
-        function uncheckAllTasks() {
-            const activeList = getActiveList();
-            if (!activeList) return;
-            
-            activeList.tasks.forEach(t => {
-                t.completed = false;
-                if (activeList.type === 'shopping') {
-                    t.status = 'in_stock';
-                }
-            });
-            
             if (activeList.type === 'timed') {
-                const t = getListTimer(activeList.id);
-                t.isRunning = false;
-                clearInterval(t.intervalId);
-                t.elapsed = 0;
-            } else if (activeList.type === 'planner') {
-                ['morning', 'afternoon', 'evening'].forEach(sec => {
-                    const t = getListTimer(`${activeList.id}_${sec}`);
-                    t.isRunning = false;
-                    clearInterval(t.intervalId);
-                    t.elapsed = 0;
-                });
+                taskTimeInput.classList.remove('hidden');
+                timerContainer.classList.remove('hidden');
+                timerContainer.classList.add('flex');
+                taskInput.placeholder = "Add a timed task...";
+                refreshTimedDisplay();
+            } else if (activeList.type === 'pill') {
+                pillDoseInput.classList.remove('hidden');
+                pillTimeWrapper.classList.remove('hidden');
+                taskInput.placeholder = "Pill name...";
+            } else if (activeList.type === 'shopping') {
+                taskInput.placeholder = "Add item...";
+            } else {
+                taskInput.placeholder = "Add a task...";
             }
-
-            saveData();
-            renderTasks();
-            renderTabs();
-            updateInputAreaState();
         }
 
-        function updateTaskVisualGradients() {
-            const activeList = getActiveList();
-            if (!activeList || activeList.type !== 'timed') return;
-
-            const activeTotalSecs = calculateTotalSeconds(activeList);
-            if (activeTotalSecs <= 0) return;
-            
-            const timer = getListTimer(activeList.id);
-            if (timer.elapsed > activeTotalSecs) timer.elapsed = activeTotalSecs;
-            const elapsedSecs = timer.elapsed;
-
-            let accumulatedSecs = 0;
-            const liElements = taskList.querySelectorAll('li[data-id]');
-
-            activeList.tasks.forEach((task) => {
-                const li = Array.from(liElements).find(el => el.dataset.id == task.id);
-                if (!li) return;
-
-                if (task.completed) {
-                    li.style.background = 'rgba(34, 197, 94, 0.2)';
-                    li.style.borderColor = 'rgba(34, 197, 94, 0.4)';
-                    return;
-                }
-
-                const taskDurationSecs = (Number(task.time) || 0) * 60;
-                const taskStartSecs = accumulatedSecs;
-                accumulatedSecs += taskDurationSecs;
-                const taskEndSecs = accumulatedSecs;
-
-                if (timer.isRunning && elapsedSecs >= taskStartSecs) {
-                    const taskProgress = Math.min(1, Math.max(0, (elapsedSecs - taskStartSecs) / Math.max(1, (taskEndSecs - taskStartSecs))));
-                    if (taskProgress > 0) {
-                        li.style.background = `linear-gradient(to right, rgba(239, 68, 68, 0.45) ${taskProgress * 100}%, var(--secondary-bg-color) ${taskProgress * 100}%)`;
-                    } else {
-                        li.style.background = 'var(--secondary-bg-color)';
-                    }
-                } else {
-                    li.style.background = 'var(--secondary-bg-color)';
-                }
-            });
-        }
-
-        function updatePlannerVisualGradients(section) {
-            const activeList = getActiveList();
-            if (!activeList || activeList.type !== 'planner') return;
-
-            const timer = getListTimer(`${activeList.id}_${section}`);
-            const activeTotalSecs = calculateTotalSeconds(activeList, section);
-            
-            if (timer.elapsed > activeTotalSecs) timer.elapsed = activeTotalSecs;
-            const elapsedSecs = timer.elapsed;
-            let accumulatedSecs = 0;
-            
-            const liElements = taskList.querySelectorAll(`ul[data-section="${section}"] li[data-id]`);
-            const secTasks = activeList.tasks.filter(t => t.section === section);
-
-            secTasks.forEach((task) => {
-                const li = Array.from(liElements).find(el => el.dataset.id == task.id);
-                if (!li) return;
-
-                if (task.completed) {
-                    li.style.background = 'rgba(34, 197, 94, 0.2)';
-                    li.style.borderColor = 'rgba(34, 197, 94, 0.4)';
-                    return;
-                }
-
-                const taskDurationSecs = (Number(task.time) || 0) * 60;
-                const taskStartSecs = accumulatedSecs;
-                accumulatedSecs += taskDurationSecs;
-                const taskEndSecs = accumulatedSecs;
-
-                if (timer.isRunning && elapsedSecs >= taskStartSecs) {
-                    const taskProgress = Math.min(1, Math.max(0, (elapsedSecs - taskStartSecs) / Math.max(1, (taskEndSecs - taskStartSecs))));
-                    if (taskProgress > 0) {
-                        li.style.background = `linear-gradient(to right, rgba(239, 68, 68, 0.45) ${taskProgress * 100}%, var(--secondary-bg-color) ${taskProgress * 100}%)`;
-                    } else {
-                        li.style.background = 'var(--secondary-bg-color)';
-                    }
-                } else {
-                    li.style.background = 'var(--secondary-bg-color)';
-                }
-            });
-        }
-
-        function renderTabs() {
+        // ---------- Tabs ----------
+        function renderTabs(scrollToActive = true) {
             tabBar.innerHTML = '';
-            
+
             lists.forEach(list => {
                 const isActive = list.id === activeListId;
                 const isOverduePillTab = listHasOverduePills(list);
 
                 const btn = document.createElement('button');
                 btn.className = `whitespace-nowrap px-5 py-2 rounded-full text-sm font-semibold transition-all active:scale-95 shrink-0 shadow-sm flex items-center gap-1.5 cursor-grab active:cursor-grabbing ${
-                    isActive 
-                        ? 'bg-[var(--button-color)] text-[var(--button-text-color)]' 
-                        : 'bg-[var(--secondary-bg-color)] text-[var(--text-color)] opacity-80 hover:opacity-100 border border-[var(--hint-color)] border-opacity-20'
+                    isActive
+                        ? 'bg-[var(--button-color)] text-[var(--button-text-color)]'
+                        : 'bg-[var(--secondary-bg-color)] text-[var(--text-color)] opacity-80 hover:opacity-100 border border-soft'
                 }`;
                 btn.dataset.id = list.id;
-                
-                const badgeDotHtml = isOverduePillTab 
-                    ? `<span class="w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm"></span>` 
-                    : '';
 
-                const editIconHtml = isActive 
-                    ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70 ml-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>` 
-                    : '';
+                if (isOverduePillTab) {
+                    const dot = document.createElement('span');
+                    dot.className = 'w-2.5 h-2.5 bg-[var(--destructive-text-color)] rounded-full animate-pulse shadow-sm';
+                    btn.appendChild(dot);
+                }
 
-                btn.innerHTML = `${badgeDotHtml}<span>${list.name}</span>${editIconHtml}`;
-                
+                // textContent, not innerHTML: tab names are user input
+                const label = document.createElement('span');
+                label.textContent = list.name;
+                btn.appendChild(label);
+
+                if (isActive) {
+                    btn.insertAdjacentHTML('beforeend', `<svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 opacity-70 ml-0.5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>`);
+                    btn.setAttribute('aria-label', `${list.name} (tap to rename or delete)`);
+                }
+
                 btn.onclick = () => {
                     if (btn.dataset.dragging === "true") return;
-                    if (isActive) {
-                        openEditTabModal();
-                    } else {
-                        switchTab(list.id);
-                    }
+                    if (list.id === activeListId) openEditTabModal();
+                    else switchTab(list.id);
                 };
                 tabBar.appendChild(btn);
             });
 
             const addTabBtn = document.createElement('button');
-            addTabBtn.className = 'add-tab-btn flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--secondary-bg-color)] text-[var(--button-color)] shrink-0 active:scale-95 transition-transform border border-[var(--hint-color)] border-opacity-20';
+            addTabBtn.className = 'add-tab-btn flex items-center justify-center w-9 h-9 ml-1 rounded-full bg-[var(--secondary-bg-color)] text-[var(--button-color)] shrink-0 active:scale-95 transition-transform border border-soft';
+            addTabBtn.setAttribute('aria-label', 'New tab');
             addTabBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>`;
             addTabBtn.onclick = openNewTabModal;
             tabBar.appendChild(addTabBtn);
 
-            const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
-            if (activeBtn) {
-                activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            // Only scroll the bar when the active tab changed; the minute ticker used to
+            // yank the tab bar (and on iOS the whole page) every 60 seconds.
+            if (scrollToActive) {
+                const activeBtn = tabBar.querySelector(`button[data-id="${activeListId}"]`);
+                if (activeBtn) activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
 
             initSortableTabs();
@@ -869,16 +980,38 @@
             renderTabs();
             renderTasks();
             updateInputAreaState();
+            taskContainer.scrollTop = 0;
+        }
+
+        // ---------- Task elements ----------
+        const DRAG_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
+        const CHECK_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+        const TRASH_ICON = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
+
+        function createDragHandle() {
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
+            dragHandle.innerHTML = DRAG_ICON;
+            return dragHandle;
+        }
+
+        function createDeleteButton(task) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
+            deleteBtn.setAttribute('aria-label', `Delete ${task.text}`);
+            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
+            deleteBtn.innerHTML = TRASH_ICON;
+            return deleteBtn;
         }
 
         function createPillTaskElement(task) {
             const overdue = isPillOverdue(task);
             const li = document.createElement('li');
             li.className = `flex items-center justify-between p-3 rounded-xl transition-all duration-200 group ${
-                task.completed 
-                    ? 'bg-[var(--secondary-bg-color)] opacity-75' 
-                    : overdue 
-                        ? 'bg-rose-500/15 border border-rose-500/40' 
+                task.completed
+                    ? 'bg-[var(--secondary-bg-color)] opacity-75'
+                    : overdue
+                        ? 'bg-rose-500/15 border border-rose-500/40'
                         : 'bg-[var(--secondary-bg-color)]'
             }`;
             li.dataset.id = task.id;
@@ -886,67 +1019,54 @@
             const leftDiv = document.createElement('div');
             leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
-            dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
-
             const contentDiv = document.createElement('div');
             contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
             contentDiv.onclick = () => toggleTask(task.id);
 
             const checkbox = document.createElement('div');
             checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
-                task.completed 
-                    ? 'border-green-500 bg-green-500 text-white' 
-                    : overdue 
-                        ? 'border-rose-500 bg-rose-500/20 text-transparent' 
+                task.completed
+                    ? 'border-green-500 bg-green-500 text-white'
+                    : overdue
+                        ? 'border-rose-500 bg-rose-500/20 text-transparent'
                         : 'border-[var(--hint-color)] text-transparent'
             }`;
-            checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+            checkbox.innerHTML = CHECK_ICON;
 
             const span = document.createElement('span');
             span.className = `text-base select-none truncate transition-all duration-200 ${
-                task.completed 
-                    ? 'line-through text-[var(--hint-color)]' 
-                    : overdue 
-                        ? 'text-[var(--destructive-text-color)] font-semibold' 
+                task.completed
+                    ? 'line-through text-[var(--hint-color)]'
+                    : overdue
+                        ? 'text-[var(--destructive-text-color)] font-semibold'
                         : 'text-[var(--text-color)]'
             }`;
-            span.innerText = task.text;
+            span.textContent = task.text;
 
             contentDiv.appendChild(checkbox);
             contentDiv.appendChild(span);
-            leftDiv.appendChild(dragHandle);
+            leftDiv.appendChild(createDragHandle());
             leftDiv.appendChild(contentDiv);
 
             const rightSideDiv = document.createElement('div');
             rightSideDiv.className = 'flex items-center gap-2 shrink-0 ml-2';
 
-            if (overdue && !task.completed) {
+            if (overdue) {
                 const overdueBadge = document.createElement('span');
                 overdueBadge.className = 'bg-[var(--destructive-text-color)] text-white text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full';
-                overdueBadge.innerText = 'Overdue';
+                overdueBadge.textContent = 'Overdue';
                 rightSideDiv.appendChild(overdueBadge);
             }
 
-            if (task.dose) {
-                const doseSpan = document.createElement('span');
-                doseSpan.className = 'bg-[var(--button-color)] bg-opacity-15 text-[var(--text-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
-                doseSpan.innerText = task.dose;
-                doseSpan.title = "Tap to edit dose";
-                doseSpan.onclick = (e) => {
-                    e.stopPropagation();
-                    openEditTimeModal(task.id);
-                };
-                rightSideDiv.appendChild(doseSpan);
-            }
+            // Always shown, so a cleared dose can still be edited
+            const doseSpan = document.createElement('button');
+            doseSpan.className = 'bg-accent-soft text-[var(--text-color)] text-xs font-semibold px-2 py-1 rounded-lg cursor-pointer hover:underline';
+            doseSpan.textContent = task.dose || 'Dose';
+            doseSpan.title = "Tap to edit dose";
+            doseSpan.onclick = (e) => { e.stopPropagation(); openEditTimeModal(task.id); };
+            rightSideDiv.appendChild(doseSpan);
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
-            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-            deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-
-            rightSideDiv.appendChild(deleteBtn);
+            rightSideDiv.appendChild(createDeleteButton(task));
             li.appendChild(leftDiv);
             li.appendChild(rightSideDiv);
             return li;
@@ -955,32 +1075,23 @@
         function createStandardTaskElement(task, listType) {
             const li = document.createElement('li');
             li.dataset.id = task.id;
-            
+
             const leftDiv = document.createElement('div');
             leftDiv.className = 'flex items-center gap-2 flex-1 min-w-0';
 
-            const dragHandle = document.createElement('div');
-            dragHandle.className = 'drag-handle py-2 pr-2 -ml-1 text-[var(--hint-color)] opacity-40 hover:opacity-100 cursor-grab active:cursor-grabbing touch-none shrink-0';
-            dragHandle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>`;
-            
             const contentDiv = document.createElement('div');
             contentDiv.className = 'flex items-center gap-3 flex-1 cursor-pointer min-w-0';
             contentDiv.onclick = () => toggleTask(task.id);
 
             if (listType === 'shopping') {
                 const status = task.status || 'in_stock';
-                
-                let bgStyle = 'bg-[var(--secondary-bg-color)] border border-[var(--hint-color)] border-opacity-10';
-                let badgeStyle = '';
-                let statusText = '';
-                let iconHtml = '';
 
-                if (status === 'in_stock') {
-                    bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
-                    badgeStyle = 'bg-emerald-500 text-white';
-                    statusText = 'In Stock';
-                    iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
-                } else if (status === 'low') {
+                let bgStyle = 'bg-emerald-500/10 border border-emerald-500/30';
+                let badgeStyle = 'bg-emerald-500 text-white';
+                let statusText = 'In Stock';
+                let iconHtml = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+
+                if (status === 'low') {
                     bgStyle = 'bg-amber-500/15 border border-amber-500/40';
                     badgeStyle = 'bg-amber-500 text-white';
                     statusText = 'Low';
@@ -999,156 +1110,150 @@
 
                 const span = document.createElement('span');
                 span.className = `text-[var(--text-color)] text-base font-medium select-none truncate transition-all duration-200 ${status === 'out_of_stock' ? 'font-bold' : ''}`;
-                span.innerText = task.text;
+                span.textContent = task.text;
 
                 contentDiv.appendChild(badge);
                 contentDiv.appendChild(span);
             } else {
-                li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
+                li.className = `flex items-center justify-between p-3 rounded-xl bg-[var(--secondary-bg-color)] border border-transparent transition-all duration-200 group ${task.completed ? 'opacity-75' : ''}`;
 
                 const checkbox = document.createElement('div');
                 checkbox.className = `w-6 h-6 shrink-0 rounded-full border-2 flex items-center justify-center transition-colors duration-200 ${
                     task.completed ? 'border-green-500 bg-green-500 text-white' : 'border-[var(--hint-color)] text-transparent'
                 }`;
-                checkbox.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+                checkbox.innerHTML = CHECK_ICON;
 
                 const span = document.createElement('span');
-                span.className = `text-[var(--text-color)] text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : ''}`;
-                span.innerText = task.text;
+                span.className = `text-base select-none truncate transition-all duration-200 ${task.completed ? 'line-through text-[var(--hint-color)]' : 'text-[var(--text-color)]'}`;
+                span.textContent = task.text;
 
                 contentDiv.appendChild(checkbox);
                 contentDiv.appendChild(span);
             }
 
-            leftDiv.appendChild(dragHandle);
+            leftDiv.appendChild(createDragHandle());
             leftDiv.appendChild(contentDiv);
 
             const rightSideDiv = document.createElement('div');
             rightSideDiv.className = 'flex items-center gap-3 shrink-0 ml-2';
 
-            if ((listType === 'timed' || listType === 'planner') && task.time > 0) {
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover:bg-[var(--destructive-text-color)] hover:bg-opacity-10 transition-colors';
-                timeSpan.innerText = `${task.time}m`;
+            // Always shown for timed items: when the time was set to 0 the badge
+            // used to disappear, leaving no way to edit it again.
+            if (listType === 'timed' || listType === 'planner') {
+                const timeSpan = document.createElement('button');
+                timeSpan.className = 'text-[var(--destructive-text-color)] text-sm font-bold cursor-pointer hover:underline py-1 px-1.5 rounded hover-danger-soft transition-colors tabular-nums';
+                timeSpan.textContent = `${Number(task.time) || 0}m`;
                 timeSpan.title = "Tap to edit time";
-                timeSpan.onclick = (e) => {
-                    e.stopPropagation();
-                    openEditTimeModal(task.id);
-                };
+                timeSpan.onclick = (e) => { e.stopPropagation(); openEditTimeModal(task.id); };
                 rightSideDiv.appendChild(timeSpan);
             }
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'p-2 text-[var(--hint-color)] hover:text-[var(--destructive-text-color)] active:scale-90 transition-all rounded-lg';
-            deleteBtn.onclick = (e) => { e.stopPropagation(); deleteTask(task.id); };
-            deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>`;
-            
-            rightSideDiv.appendChild(deleteBtn);
+            rightSideDiv.appendChild(createDeleteButton(task));
 
             li.appendChild(leftDiv);
             li.appendChild(rightSideDiv);
             return li;
         }
 
+        // ---------- Rendering ----------
         function renderTasks() {
-            taskList.innerHTML = ''; 
             const activeList = getActiveList();
-            
-            if (!activeList || (activeList.tasks.length === 0 && activeList.type !== 'planner')) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-            } else {
-                emptyState.classList.add('hidden');
-                emptyState.classList.remove('flex');
-            }
 
-            if (activeList) {
+            // Keep anything typed into planner inputs across re-renders
+            const draft = {};
+            taskList.querySelectorAll('input[id^="planner-"]').forEach(inp => { draft[inp.id] = inp.value; });
+            const focusedId = document.activeElement && document.activeElement.id;
+
+            taskList.innerHTML = '';
+
+            const isEmpty = !activeList || (activeList.tasks.length === 0 && activeList.type !== 'planner');
+            emptyState.classList.toggle('hidden', !isEmpty);
+            emptyState.classList.toggle('flex', isEmpty);
+
+            if (activeList && !isEmpty) {
                 if (activeList.type === 'pill') {
-                    const sections = [
-                        { key: 'morning', title: '☀️ Morning (up to 12 PM)' },
-                        { key: 'day', title: '🌤️ Day (12 PM - 6 PM)' },
-                        { key: 'night', title: '🌙 Night (6 PM - 12 AM)' }
-                    ];
+                    // Each section is its own drop zone, so dragging a pill into another
+                    // section moves it there. (Headers used to sit inside the sortable list
+                    // and threw the drag indexes off.)
+                    PILL_SECTIONS.forEach(sec => {
+                        const block = document.createElement('li');
+                        block.className = 'flex flex-col gap-2';
 
-                    sections.forEach(sec => {
-                        const secTasks = activeList.tasks.filter(t => (t.section || 'morning') === sec.key);
-                        if (secTasks.length > 0) {
-                            const header = document.createElement('div');
-                            header.className = 'text-xs font-bold uppercase tracking-wider text-[var(--hint-color)] pt-3 pb-1 px-1';
-                            header.textContent = sec.title;
-                            taskList.appendChild(header);
+                        const header = document.createElement('div');
+                        header.className = 'text-xs font-bold uppercase tracking-wider text-[var(--hint-color)] pt-3 pb-1 px-1';
+                        header.textContent = sec.title;
+                        block.appendChild(header);
 
-                            secTasks.forEach(task => {
-                                taskList.appendChild(createPillTaskElement(task));
-                            });
-                        }
+                        const zone = document.createElement('ul');
+                        zone.className = 'task-dropzone flex flex-col gap-2 min-h-[12px]';
+                        zone.dataset.section = sec.key;
+                        activeList.tasks
+                            .filter(t => (t.section || 'morning') === sec.key)
+                            .forEach(task => zone.appendChild(createPillTaskElement(task)));
+                        block.appendChild(zone);
+                        taskList.appendChild(block);
                     });
 
                 } else if (activeList.type === 'planner') {
-                    const blocks = [
-                        { key: 'morning', title: 'Morning Block' },
-                        { key: 'afternoon', title: 'Afternoon Block' },
-                        { key: 'evening', title: 'Evening Block' }
-                    ];
-
-                    blocks.forEach(block => {
+                    PLANNER_BLOCKS.forEach(block => {
                         const timer = getListTimer(`${activeList.id}_${block.key}`);
                         const totalSecs = calculateTotalSeconds(activeList, block.key);
-                        
-                        if (timer.elapsed > totalSecs) timer.elapsed = totalSecs;
-                        const remaining = Math.max(0, totalSecs - timer.elapsed);
+                        if (timerElapsed(timer) > totalSecs) setTimerElapsed(timer, totalSecs);
+                        const remaining = totalSecs - timerElapsed(timer);
 
-                        const blockContainer = document.createElement('div');
+                        const blockContainer = document.createElement('li');
                         blockContainer.className = 'mb-6 flex flex-col gap-2';
-                        
+
                         const header = document.createElement('div');
-                        header.className = 'flex justify-between items-center mb-1 px-1';
+                        header.className = 'flex justify-between items-center mb-1 px-1 gap-2';
                         header.innerHTML = `
                             <h3 class="font-bold text-lg text-[var(--text-color)]">${block.title}</h3>
-                            <div class="flex items-center gap-1.5 shrink-0 bg-[var(--secondary-bg-color)] px-2.5 py-1.5 rounded-xl border border-[var(--hint-color)] border-opacity-10 shadow-sm">
+                            <div class="flex items-center gap-1.5 shrink-0 bg-[var(--secondary-bg-color)] px-2.5 py-1.5 rounded-xl border border-faint shadow-sm">
                                 ${timer.isRunning ? `<svg class="h-3 w-3 text-[var(--destructive-text-color)] animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` : ''}
-                                <span id="planner-timer-${block.key}" class="font-mono font-bold text-sm tracking-tight">${formatTime(remaining)}</span>
-                                <button onclick="togglePlannerTimer('${block.key}')" class="${timer.isRunning ? 'bg-[var(--destructive-text-color)] text-white' : 'bg-[var(--button-color)] text-[var(--button-text-color)]'} text-xs px-2 py-1 rounded-lg font-semibold active:scale-95 transition-transform ml-1">
-                                    ${timer.isRunning ? 'Pause' : 'Start'}
-                                </button>
-                                <button onclick="resetPlannerTimer('${block.key}')" class="bg-[var(--hint-color)] bg-opacity-20 text-[var(--text-color)] text-xs px-2 py-1 rounded-lg font-semibold active:scale-95 transition-transform">Reset</button>
+                                <span id="planner-timer-${block.key}" class="font-mono font-bold text-sm tracking-tight tabular-nums">${formatTime(remaining)}</span>
+                                <button data-action="toggle" class="${timer.isRunning ? 'bg-[var(--destructive-text-color)] text-white' : 'bg-[var(--button-color)] text-[var(--button-text-color)]'} text-xs px-2 py-1 rounded-lg font-semibold active:scale-95 transition-transform ml-1">${timer.isRunning ? 'Pause' : 'Start'}</button>
+                                <button data-action="reset" class="bg-hint-soft text-[var(--text-color)] text-xs px-2 py-1 rounded-lg font-semibold active:scale-95 transition-transform">Reset</button>
                             </div>
                         `;
+                        header.querySelector('[data-action="toggle"]').addEventListener('click', () => togglePlannerTimer(block.key));
+                        header.querySelector('[data-action="reset"]').addEventListener('click', () => resetPlannerTimer(block.key));
                         blockContainer.appendChild(header);
 
                         const dropzone = document.createElement('ul');
-                        dropzone.className = 'planner-dropzone flex flex-col gap-2 min-h-[10px] pb-1'; 
+                        dropzone.className = 'task-dropzone flex flex-col gap-2 min-h-[10px] pb-1';
                         dropzone.dataset.section = block.key;
-                        
-                        const secTasks = activeList.tasks.filter(t => t.section === block.key);
-                        secTasks.forEach(task => {
-                            dropzone.appendChild(createStandardTaskElement(task, 'planner'));
-                        });
+                        activeList.tasks
+                            .filter(t => t.section === block.key)
+                            .forEach(task => dropzone.appendChild(createStandardTaskElement(task, 'planner')));
                         blockContainer.appendChild(dropzone);
 
                         const inputRow = document.createElement('div');
                         inputRow.className = 'flex gap-2 w-full mt-1 shrink-0 items-center';
                         inputRow.innerHTML = `
-                            <input type="text" id="planner-input-${block.key}" placeholder="Add to ${block.title}..." class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all min-w-0 text-sm">
-                            <input type="number" id="planner-time-${block.key}" placeholder="Mins" class="w-16 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-2 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0 text-sm">
-                            <button onclick="addPlannerTask('${block.key}')" class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-3 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0">
+                            <input type="text" id="planner-input-${block.key}" placeholder="Add to ${block.title}..." aria-label="New task for ${block.title}" class="flex-1 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all min-w-0 text-sm">
+                            <input type="number" id="planner-time-${block.key}" placeholder="Mins" min="1" max="300" inputmode="numeric" aria-label="Minutes" class="w-16 bg-[var(--secondary-bg-color)] text-[var(--text-color)] placeholder-[var(--hint-color)] rounded-xl px-2 py-3 outline-none focus:ring-2 focus:ring-[var(--button-color)] transition-all text-center font-medium shrink-0 text-sm">
+                            <button data-action="add" aria-label="Add to ${block.title}" class="bg-[var(--button-color)] text-[var(--button-text-color)] rounded-xl px-3 py-3 font-semibold shadow-sm active:scale-95 transition-transform flex items-center justify-center shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                             </button>
                         `;
-
-                        setTimeout(() => {
-                            const tIn = document.getElementById(`planner-input-${block.key}`);
-                            const mIn = document.getElementById(`planner-time-${block.key}`);
-                            if(tIn) tIn.addEventListener('keypress', e => { if (e.key === 'Enter') addPlannerTask(block.key); });
-                            if(mIn) mIn.addEventListener('keypress', e => { if (e.key === 'Enter') addPlannerTask(block.key); });
-                        }, 0);
+                        const tIn = inputRow.querySelector(`#planner-input-${block.key}`);
+                        const mIn = inputRow.querySelector(`#planner-time-${block.key}`);
+                        if (draft[tIn.id]) tIn.value = draft[tIn.id];
+                        if (draft[mIn.id]) mIn.value = draft[mIn.id];
+                        onEnter(tIn, () => addPlannerTask(block.key));
+                        onEnter(mIn, () => addPlannerTask(block.key));
+                        inputRow.querySelector('[data-action="add"]').addEventListener('click', () => addPlannerTask(block.key));
 
                         blockContainer.appendChild(inputRow);
                         taskList.appendChild(blockContainer);
                     });
 
-                    blocks.forEach(block => updatePlannerVisualGradients(block.key));
+                    PLANNER_BLOCKS.forEach(block => updatePlannerVisualGradients(block.key));
 
+                    if (focusedId && focusedId.startsWith('planner-')) {
+                        const el = document.getElementById(focusedId);
+                        if (el) el.focus();
+                    }
                 } else {
                     activeList.tasks.forEach(task => {
                         taskList.appendChild(createStandardTaskElement(task, activeList.type));
@@ -1159,55 +1264,51 @@
             initSortableTasks();
         }
 
+        // ---------- Drag & drop ----------
         function initSortableTasks() {
-            if (sortableTasksInstances && sortableTasksInstances.length > 0) {
-                sortableTasksInstances.forEach(inst => inst.destroy());
-            }
+            sortableTasksInstances.forEach(inst => inst.destroy());
             sortableTasksInstances = [];
 
             const activeList = getActiveList();
-            if (!activeList) return;
+            if (!activeList || typeof Sortable === 'undefined') return;
 
-            if (activeList.type === 'planner') {
-                const dropzones = document.querySelectorAll('.planner-dropzone');
-                dropzones.forEach(zone => {
+            const common = {
+                handle: '.drag-handle',
+                animation: 200,
+                delay: 100,
+                delayOnTouchOnly: true,
+                onStart: () => { isDragging = true; }
+            };
+
+            if (activeList.type === 'planner' || activeList.type === 'pill') {
+                taskList.querySelectorAll('.task-dropzone').forEach(zone => {
                     const inst = new Sortable(zone, {
-                        group: 'planner-tasks',
-                        handle: '.drag-handle',
-                        animation: 200,
-                        delay: 100,
-                        delayOnTouchOnly: true,
+                        ...common,
+                        group: `sections-${activeList.id}`,
                         onEnd: function (evt) {
-                            const itemEl = evt.item;
-                            const taskId = parseInt(itemEl.dataset.id);
-                            const newSection = evt.to.dataset.section;
-                            
+                            isDragging = false;
+                            const taskId = parseInt(evt.item.dataset.id, 10);
                             const task = activeList.tasks.find(t => t.id === taskId);
-                            if (task) task.section = newSection; 
-                            
-                            const allNodes = Array.from(document.querySelectorAll('.planner-dropzone li[data-id]'));
-                            activeList.tasks.sort((a, b) => {
-                                const aIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === a.id);
-                                const bIndex = allNodes.findIndex(node => parseInt(node.dataset.id) === b.id);
-                                if (aIndex === -1) return 1; if (bIndex === -1) return -1;
-                                return aIndex - bIndex;
-                            });
-                            
+                            if (task) task.section = evt.to.dataset.section;
+
+                            // Rebuild the array order from the DOM order across all sections
+                            const order = Array.from(taskList.querySelectorAll('.task-dropzone li[data-id]'))
+                                .map(node => parseInt(node.dataset.id, 10));
+                            activeList.tasks.sort((a, b) => order.indexOf(a.id) - order.indexOf(b.id));
+
                             saveData();
                             renderTasks();
+                            renderTabs(false);
                         }
                     });
                     sortableTasksInstances.push(inst);
                 });
             } else {
                 const inst = new Sortable(taskList, {
-                    handle: '.drag-handle',
-                    animation: 200,
-                    delay: 100,
-                    delayOnTouchOnly: true,
+                    ...common,
                     onEnd: function (evt) {
-                        const oldIndex = evt.oldIndex;
-                        const newIndex = evt.newIndex;
+                        isDragging = false;
+                        const { oldIndex, newIndex } = evt;
                         if (oldIndex !== newIndex) {
                             const [movedTask] = activeList.tasks.splice(oldIndex, 1);
                             activeList.tasks.splice(newIndex, 0, movedTask);
@@ -1222,23 +1323,22 @@
 
         function initSortableTabs() {
             if (sortableTabsInstance) sortableTabsInstance.destroy();
+            if (typeof Sortable === 'undefined') return;
             sortableTabsInstance = new Sortable(tabBar, {
                 animation: 200,
-                draggable: 'button:not(.add-tab-btn)', 
+                draggable: 'button:not(.add-tab-btn)',
                 filter: '.add-tab-btn',
                 delay: 150,
                 delayOnTouchOnly: true,
                 onStart: function (evt) {
+                    isDragging = true;
                     evt.item.dataset.dragging = "true";
                 },
                 onEnd: function (evt) {
-                    setTimeout(() => {
-                        evt.item.dataset.dragging = "false";
-                    }, 50);
+                    isDragging = false;
+                    setTimeout(() => { evt.item.dataset.dragging = "false"; }, 50);
 
-                    const oldIndex = evt.oldIndex;
-                    const newIndex = evt.newIndex;
-                    
+                    const { oldIndex, newIndex } = evt;
                     if (oldIndex !== undefined && newIndex !== undefined && oldIndex !== newIndex) {
                         const [movedList] = lists.splice(oldIndex, 1);
                         lists.splice(newIndex, 0, movedList);
@@ -1248,55 +1348,52 @@
             });
         }
 
+        // ---------- Task actions ----------
         function addTask() {
             const text = taskInput.value.trim();
             if (text === '') return;
-            
+
             const activeList = getActiveList();
             if (!activeList) return;
 
-            let taskTime = 0;
+            const newTask = { id: activeList.nextTaskId++, text: text, completed: false };
             if (activeList.type === 'timed') {
-                taskTime = Number(taskTimeInput.value) || 5; 
+                const mins = Number(taskTimeInput.value);
+                newTask.time = mins > 0 ? mins : 5;
+            } else if (activeList.type === 'shopping') {
+                newTask.status = 'out_of_stock'; // new items go straight onto the "need to buy" list
+            } else if (activeList.type === 'pill') {
+                newTask.dose = pillDoseInput.value.trim() || '1 pill';
+                newTask.section = pillTimeSelect.value;
             }
-
-            const newTask = { 
-                id: activeList.nextTaskId++, 
-                text: text, 
-                time: taskTime, 
-                completed: false,
-                status: activeList.type === 'shopping' ? 'out_of_stock' : 'in_stock',
-                dose: activeList.type === 'pill' ? (pillDoseInput.value.trim() || '1 pill') : '',
-                section: activeList.type === 'pill' ? pillTimeSelect.value : ''
-            };
 
             activeList.tasks.push(newTask);
 
-            taskInput.value = ''; 
+            taskInput.value = '';
             taskTimeInput.value = '';
             pillDoseInput.value = '';
-            saveData(); 
+            saveData();
             renderTasks();
-            renderTabs();
+            renderTabs(false);
             updateInputAreaState();
-            taskContainer.scrollTop = taskContainer.scrollHeight;
+            if (activeList.type !== 'pill') taskContainer.scrollTop = taskContainer.scrollHeight;
         }
 
         function addPlannerTask(section) {
             const activeList = getActiveList();
             if (!activeList || activeList.type !== 'planner') return;
-            
+
             const textInput = document.getElementById(`planner-input-${section}`);
             const timeInput = document.getElementById(`planner-time-${section}`);
-            
+
             const text = textInput.value.trim();
             if (text === '') return;
-            const taskTime = Number(timeInput.value) || 5;
+            const mins = Number(timeInput.value);
 
             activeList.tasks.push({
                 id: activeList.nextTaskId++,
                 text: text,
-                time: taskTime,
+                time: mins > 0 ? mins : 5,
                 completed: false,
                 section: section
             });
@@ -1305,44 +1402,50 @@
             timeInput.value = '';
             saveData();
             renderTasks();
+            const again = document.getElementById(`planner-input-${section}`);
+            if (again) again.focus();
         }
 
         function toggleTask(id) {
             const activeList = getActiveList();
             if (!activeList) return;
             const task = activeList.tasks.find(t => t.id === id);
-            if (task) {
-                if (activeList.type === 'shopping') {
-                    const currentStatus = task.status || 'in_stock';
-                    if (currentStatus === 'in_stock') {
-                        task.status = 'low';
-                    } else if (currentStatus === 'low') {
-                        task.status = 'out_of_stock';
-                    } else {
-                        task.status = 'in_stock';
-                    }
-                } else {
-                    task.completed = !task.completed;
-                }
+            if (!task) return;
 
-                saveData(); 
-                renderTasks();
-                renderTabs();
-                
-                if (activeList.type === 'timed') {
-                    updateInputAreaState();
-                }
+            if (activeList.type === 'shopping') {
+                const currentStatus = task.status || 'in_stock';
+                if (currentStatus === 'in_stock') task.status = 'low';
+                else if (currentStatus === 'low') task.status = 'out_of_stock';
+                else task.status = 'in_stock';
+            } else {
+                if (!task.completed) creditTaskTime(activeList, task);
+                task.completed = !task.completed;
             }
+
+            saveData();
+            renderTasks();
+            renderTabs(false);
+            if (activeList.type === 'timed') updateInputAreaState();
         }
 
         function deleteTask(id) {
             const activeList = getActiveList();
             if (!activeList) return;
+            const task = activeList.tasks.find(t => t.id === id);
+            if (task) creditTaskTime(activeList, task);
             activeList.tasks = activeList.tasks.filter(t => t.id !== id);
-            saveData(); 
+            saveData();
             renderTasks();
-            renderTabs();
+            renderTabs(false);
             updateInputAreaState();
+        }
+
+        // ---------- Modals ----------
+        function openModal(modal) { modal.classList.remove('hidden'); }
+        function closeAllModals() {
+            closeNewTabModal();
+            closeEditTabModal();
+            closeEditTimeModal();
         }
 
         function openEditTimeModal(taskId) {
@@ -1356,17 +1459,20 @@
             if (activeList.type === 'pill') {
                 editModalTitle.textContent = "Edit Pill Dose";
                 editTimeInput.type = "text";
+                editTimeInput.removeAttribute('inputmode');
                 editTimeInput.value = task.dose || "1 pill";
             } else {
                 editModalTitle.textContent = "Edit Task Time (Mins)";
                 editTimeInput.type = "number";
-                editTimeInput.value = task.time || 5;
+                editTimeInput.setAttribute('inputmode', 'numeric');
+                editTimeInput.min = "0";
+                editTimeInput.value = Number(task.time) || 0;
             }
 
-            editTimeModal.classList.remove('hidden');
+            openModal(editTimeModal);
             setTimeout(() => {
                 editTimeInput.focus();
-                editTimeInput.select();
+                try { editTimeInput.select(); } catch (e) {}
             }, 100);
         }
 
@@ -1388,7 +1494,7 @@
                 }
                 saveData();
                 renderTasks();
-                renderTabs();
+                renderTabs(false);
                 updateInputAreaState();
             }
             closeEditTimeModal();
@@ -1397,95 +1503,41 @@
         function populatePlannerDateOptions() {
             newTabDateSelect.innerHTML = '';
             const daysOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            
-            // Generate next 14 days starting from today
+
+            // Next 14 days starting from today
             for (let i = 0; i < 14; i++) {
                 const d = new Date();
                 d.setDate(d.getDate() + i);
-                const dayName = daysOfWeek[d.getDay()];
-                const dayNum = d.getDate();
-                
+                const label = `${daysOfWeek[d.getDay()]} ${d.getDate()}`;
                 const option = document.createElement('option');
-                option.value = `${dayName} ${dayNum}`; // e.g., "MON 21"
-                option.textContent = `${dayName} ${dayNum}`;
+                option.value = label; // e.g., "MON 21"
+                option.textContent = i === 0 ? `${label} (today)` : i === 1 ? `${label} (tomorrow)` : label;
                 newTabDateSelect.appendChild(option);
             }
         }
 
         function openNewTabModal() {
             newTabSelect.innerHTML = '';
-            
-            const newListsGroup = document.createElement('optgroup');
-            newListsGroup.label = "── LISTS ──";
-
-            const optTimed = document.createElement('option');
-            optTimed.value = 'cat_timed';
-            optTimed.textContent = 'Timed Task List';
-
-            const optSimple = document.createElement('option');
-            optSimple.value = 'cat_simple';
-            optSimple.textContent = 'Simple Task List';
-
-            const optShopping = document.createElement('option');
-            optShopping.value = 'cat_shopping';
-            optShopping.textContent = 'Shopping List';
-
-            newListsGroup.appendChild(optTimed);
-            newListsGroup.appendChild(optSimple);
-            newListsGroup.appendChild(optShopping);
-            newTabSelect.appendChild(newListsGroup);
-
-            const plannersGroup = document.createElement('optgroup');
-            plannersGroup.label = "── PLANNERS ──";
-            
-            const optPlanner = document.createElement('option');
-            optPlanner.value = 'cat_planner';
-            optPlanner.textContent = 'Daily Planner';
-            
-            plannersGroup.appendChild(optPlanner);
-            newTabSelect.appendChild(plannersGroup);
-
-            const trackersGroup = document.createElement('optgroup');
-            trackersGroup.label = "── TRACKERS ──";
-
-            const optPill = document.createElement('option');
-            optPill.value = 'cat_pill';
-            optPill.textContent = 'Pill Tracker';
-            trackersGroup.appendChild(optPill);
-            newTabSelect.appendChild(trackersGroup);
-
-            const presetsGroup = document.createElement('optgroup');
-            presetsGroup.label = "── PRESETS ──";
-
-            const optClean = document.createElement('option');
-            optClean.value = 'Cleaning';
-            optClean.textContent = 'Clean Preset';
-            presetsGroup.appendChild(optClean);
-
-            const optDeep = document.createElement('option');
-            optDeep.value = 'Deep Clean';
-            optDeep.textContent = 'Deep Clean Preset';
-            presetsGroup.appendChild(optDeep);
-
-            const optGroc = document.createElement('option');
-            optGroc.value = 'Groceries';
-            optGroc.textContent = 'Groceries Preset';
-            presetsGroup.appendChild(optGroc);
-
-            const optHouse = document.createElement('option');
-            optHouse.value = 'Household';
-            optHouse.textContent = 'Household Preset';
-            presetsGroup.appendChild(optHouse);
-
-            const optPillPreset = document.createElement('option');
-            optPillPreset.value = 'Pills Preset';
-            optPillPreset.textContent = 'Pill Tracker Preset';
-            presetsGroup.appendChild(optPillPreset);
-
-            newTabSelect.appendChild(presetsGroup);
+            const groups = [
+                ['── LISTS ──', [['cat_timed', 'Timed Task List'], ['cat_simple', 'Simple Task List'], ['cat_shopping', 'Shopping List']]],
+                ['── PLANNERS ──', [['cat_planner', 'Daily Planner']]],
+                ['── TRACKERS ──', [['cat_pill', 'Pill Tracker']]],
+                ['── PRESETS ──', [['Cleaning', 'Clean Preset'], ['Deep Clean', 'Deep Clean Preset'], ['Groceries', 'Groceries Preset'], ['Household', 'Household Preset'], ['Pills Preset', 'Pill Tracker Preset']]]
+            ];
+            groups.forEach(([label, options]) => {
+                const group = document.createElement('optgroup');
+                group.label = label;
+                options.forEach(([value, text]) => {
+                    const opt = document.createElement('option');
+                    opt.value = value;
+                    opt.textContent = text;
+                    group.appendChild(opt);
+                });
+                newTabSelect.appendChild(group);
+            });
 
             handleNewTabSelectChange();
-            newTabModal.classList.remove('hidden');
+            openModal(newTabModal);
         }
 
         function handleNewTabSelectChange() {
@@ -1503,9 +1555,7 @@
             }
         }
 
-        function closeNewTabModal() { 
-            newTabModal.classList.add('hidden'); 
-        }
+        function closeNewTabModal() { newTabModal.classList.add('hidden'); }
 
         function createNewTab() {
             let name = '';
@@ -1516,22 +1566,14 @@
             if (val.startsWith('cat_')) {
                 if (val === 'cat_planner') {
                     listType = 'planner';
-                    name = newTabDateSelect.value; // Grabs selected "MON 21" format
-                    initialTasks = [];
+                    name = newTabDateSelect.value;
                 } else {
                     name = newTabInput.value.trim();
-                    if (name === '') return;
-
-                    if (val === 'cat_timed') {
-                        listType = 'timed';
-                    } else if (val === 'cat_shopping') {
-                        listType = 'shopping';
-                    } else if (val === 'cat_pill') {
-                        listType = 'pill';
-                        initialTasks = [];
-                    } else {
-                        listType = 'standard';
-                    }
+                    if (name === '') { newTabInput.focus(); return; }
+                    if (val === 'cat_timed') listType = 'timed';
+                    else if (val === 'cat_shopping') listType = 'shopping';
+                    else if (val === 'cat_pill') listType = 'pill';
+                    else listType = 'standard';
                 }
             } else {
                 name = val;
@@ -1554,79 +1596,89 @@
                 }
             }
 
-            const nextTId = initialTasks.length > 0 ? Math.max(...initialTasks.map(t => t.id)) + 1 : 1;
-            const newList = { id: nextListId++, name: name, type: listType, tasks: initialTasks, nextTaskId: nextTId };
-            
+            const newList = { id: nextListId++, name: name, type: listType, tasks: initialTasks, nextTaskId: initialTasks.length + 1 };
+
             lists.push(newList);
-            activeListId = newList.id;
-            saveData();
             closeNewTabModal();
-            renderTabs();
-            renderTasks();
-            updateInputAreaState();
+            switchTab(newList.id);
+        }
+
+        // Delete asks for a second tap instead of confirm(), which some webviews block
+        let deleteArmed = false;
+        function resetDeleteButton() {
+            deleteArmed = false;
+            deleteTabBtn.textContent = 'Delete';
+            deleteTabBtn.classList.remove('bg-[var(--destructive-text-color)]', 'text-white');
+            deleteTabBtn.classList.add('bg-danger-soft', 'text-[var(--destructive-text-color)]');
         }
 
         function openEditTabModal() {
             const activeList = getActiveList();
             editTabInput.value = activeList.name;
             deleteTabBtn.style.display = lists.length <= 1 ? 'none' : 'block';
-            editTabModal.classList.remove('hidden');
-            deleteTabBtn.textContent = `Delete`;
+            resetDeleteButton();
+            openModal(editTabModal);
             setTimeout(() => editTabInput.focus(), 100);
         }
-        function closeEditTabModal() { editTabModal.classList.add('hidden'); }
+        function closeEditTabModal() { editTabModal.classList.add('hidden'); resetDeleteButton(); }
         function saveEditTab() {
             const newName = editTabInput.value.trim();
             if (newName === '') return;
-            const activeList = getActiveList();
-            activeList.name = newName;
+            getActiveList().name = newName;
             saveData();
             closeEditTabModal();
-            renderTabs();
+            renderTabs(false);
         }
         function deleteCurrentTab() {
             if (lists.length <= 1) return;
+            if (!deleteArmed) {
+                deleteArmed = true;
+                const count = getActiveList().tasks.length;
+                deleteTabBtn.textContent = count ? `Delete ${count} items?` : 'Tap to confirm';
+                deleteTabBtn.classList.remove('bg-danger-soft', 'text-[var(--destructive-text-color)]');
+                deleteTabBtn.classList.add('bg-[var(--destructive-text-color)]', 'text-white');
+                return;
+            }
+            const removedIndex = lists.findIndex(l => l.id === activeListId);
+            clearTimersForList(activeListId); // stop orphaned countdowns
             lists = lists.filter(l => l.id !== activeListId);
-            activeListId = lists[0].id;
-            saveData();
             closeEditTabModal();
-            renderTabs();
-            renderTasks();
-            updateInputAreaState();
+            switchTab(lists[Math.max(0, removedIndex - 1)].id);
         }
 
+        // ---------- Swipe between tabs ----------
         let touchStartX = 0;
         let touchStartY = 0;
         let touchCurrentX = 0;
-        let touchCurrentY = 0;
         let isSwiping = false;
 
+        function resetSwipeVisuals() {
+            taskContainer.classList.remove('swiping');
+            taskContainer.style.transform = '';
+            taskContainer.style.opacity = '';
+        }
+
         taskContainer.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('input')) {
+            if (isDragging || e.touches.length > 1 || e.target.closest('.drag-handle, button, input, select')) {
                 isSwiping = false;
                 return;
             }
-            touchStartX = e.touches[0].clientX;
+            touchStartX = touchCurrentX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
-            touchCurrentX = touchStartX;
-            touchCurrentY = touchStartY;
             isSwiping = true;
             taskContainer.classList.add('swiping');
         }, { passive: true });
 
         taskContainer.addEventListener('touchmove', (e) => {
             if (!isSwiping) return;
+            if (isDragging) { isSwiping = false; resetSwipeVisuals(); return; }
             touchCurrentX = e.touches[0].clientX;
-            touchCurrentY = e.touches[0].clientY;
-
             const diffX = touchCurrentX - touchStartX;
-            const diffY = touchCurrentY - touchStartY;
+            const diffY = e.touches[0].clientY - touchStartY;
 
             if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 10) {
                 isSwiping = false;
-                taskContainer.style.transform = '';
-                taskContainer.style.opacity = '';
-                taskContainer.classList.remove('swiping');
+                resetSwipeVisuals();
                 return;
             }
 
@@ -1636,37 +1688,32 @@
             }
         }, { passive: true });
 
-        taskContainer.addEventListener('touchend', () => {
+        function endSwipe(cancelled) {
             if (!isSwiping) return;
             isSwiping = false;
-            taskContainer.classList.remove('swiping');
+            resetSwipeVisuals();
+            if (cancelled) return;
 
             const diffX = touchCurrentX - touchStartX;
             const threshold = 60;
+            const currentIndex = lists.findIndex(l => l.id === activeListId);
 
             if (diffX < -threshold) {
-                const currentIndex = lists.findIndex(l => l.id === activeListId);
-                if (currentIndex < lists.length - 1) {
-                    switchTab(lists[currentIndex + 1].id);
-                } else {
-                    openNewTabModal();
-                }
-            } else if (diffX > threshold) {
-                const currentIndex = lists.findIndex(l => l.id === activeListId);
-                if (currentIndex > 0) {
-                    switchTab(lists[currentIndex - 1].id);
-                }
+                if (currentIndex < lists.length - 1) switchTab(lists[currentIndex + 1].id);
+                else openNewTabModal();
+            } else if (diffX > threshold && currentIndex > 0) {
+                switchTab(lists[currentIndex - 1].id);
             }
+        }
+        taskContainer.addEventListener('touchend', () => endSwipe(false));
+        taskContainer.addEventListener('touchcancel', () => endSwipe(true));
 
-            taskContainer.style.transform = '';
-            taskContainer.style.opacity = '';
-        });
-
+        // ---------- Wiring ----------
         addBtn.addEventListener('click', addTask);
-        taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-        taskTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-        pillDoseInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-        
+        onEnter(taskInput, addTask);
+        onEnter(taskTimeInput, addTask);
+        onEnter(pillDoseInput, addTask);
+
         timerToggleBtn.addEventListener('click', toggleTimer);
         timerStopBtn.addEventListener('click', stopTimer);
         uncheckAllBtn.addEventListener('click', uncheckAllTasks);
@@ -1674,22 +1721,26 @@
         document.getElementById('cancel-tab-btn').addEventListener('click', closeNewTabModal);
         document.getElementById('save-tab-btn').addEventListener('click', createNewTab);
         newTabSelect.addEventListener('change', handleNewTabSelectChange);
-        newTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') createNewTab(); });
+        onEnter(newTabInput, createNewTab);
 
         document.getElementById('cancel-edit-tab-btn').addEventListener('click', closeEditTabModal);
         document.getElementById('save-edit-tab-btn').addEventListener('click', saveEditTab);
         deleteTabBtn.addEventListener('click', deleteCurrentTab);
-        editTabInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveEditTab(); });
+        onEnter(editTabInput, saveEditTab);
 
         document.getElementById('cancel-time-btn').addEventListener('click', closeEditTimeModal);
         document.getElementById('save-time-btn').addEventListener('click', saveTaskTime);
-        editTimeInput.addEventListener('keypress', e => { if (e.key === 'Enter') saveTaskTime(); });
+        onEnter(editTimeInput, saveTaskTime);
+
+        // Close modals by tapping the backdrop or pressing Escape
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', e => { if (e.target === modal) closeAllModals(); });
+        });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllModals(); });
 
         renderTabs();
         renderTasks();
-        initSortableTasks();
         updateInputAreaState();
-
     </script>
 </body>
 </html>
