@@ -426,10 +426,16 @@
             { key: 'evening', title: 'Evening Block' }
         ];
 
-        // Storage keys keep their original "clean checklist" names so existing saved lists survive the rename
-        const STORAGE_KEY = 'cleanChecklistMultiData';
-        const TIMERS_KEY = 'cleanChecklistTimers';
-        const PILL_RESET_KEY = 'cleanAppLastPillReset';
+        const STORAGE_KEY = 'nowWhatData';
+        const TIMERS_KEY = 'nowWhatTimers';
+        const PILL_RESET_KEY = 'nowWhatLastPillReset';
+
+        // Keys used before the app was renamed from "Clean Checklist"; migrated once on load
+        const LEGACY_STORAGE_KEYS = {
+            cleanChecklistMultiData: STORAGE_KEY,
+            cleanChecklistTimers: TIMERS_KEY,
+            cleanAppLastPillReset: PILL_RESET_KEY
+        };
 
         let lists = [];
         let activeListId = 1;
@@ -450,6 +456,20 @@
         }
         function storageSet(key, value) {
             try { localStorage.setItem(key, value); } catch (e) { /* storage unavailable or full */ }
+        }
+
+        function storageRemove(key) {
+            try { localStorage.removeItem(key); } catch (e) { /* storage unavailable */ }
+        }
+
+        function migrateLegacyStorage() {
+            Object.entries(LEGACY_STORAGE_KEYS).forEach(([oldKey, newKey]) => {
+                const oldValue = storageGet(oldKey);
+                if (oldValue === null) return;
+                if (storageGet(newKey) === null) storageSet(newKey, oldValue);
+                // Only drop the old key once the new one is safely written
+                if (storageGet(newKey) !== null) storageRemove(oldKey);
+            });
         }
 
         function saveData() {
@@ -535,6 +555,7 @@
             } catch (e) { listTimers = {}; }
         }
 
+        migrateLegacyStorage();
         loadData();
 
         // ---------- Helpers ----------
